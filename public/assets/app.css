@@ -1,0 +1,55 @@
+ * {
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+ }
+
+ body {
+     width: 80%;
+     background-color: antiquewhite;
+     margin: auto;
+ }
+
+ header {
+     margin-top: 20px;
+ }
+
+ nav {
+     display: inline-flex;
+     align-items: center;
+ }
+
+ nav>div {
+     display: inline;
+ }
+
+ nav>h1 {
+     display: inline;
+ }
+
+ nav>div>a {
+     color: black;
+     margin: 0 20px;
+ }
+
+ .main {
+     margin: 40px 0;
+ }
+
+ h2 {
+     margin: 20px 0;
+ }
+
+ form>label {
+     display: block;
+     margin: 10px 0;
+ }
+
+ form>label>input {
+     padding: 5px 0;
+ }
+
+ form>button {
+     border-radius: 20px;
+     padding: 8px 10px;
+ }
