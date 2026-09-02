@@ -55,5 +55,23 @@
  }
 
  span {
-    color: rgb(138, 7, 7);
+     color: rgb(138, 7, 7);
+     display: block;
+ }
+
+ .deleteButton {
+     border: none;
+     background-color: transparent;
+ }
+
+ .deleteButton:hover {
+     color: brown;
+     background-color: white;
+ }
+
+ .mainArticle {
+     display: flex;
+     flex-direction: row;
+     align-items: center;
+     gap: 15px;
  }

@@ -5,6 +5,8 @@ namespace app\Service;
 use app\Domain\Article;
 use app\Model\ArticleAddRequest;
 use app\Model\ArticleAddResponse;
+use app\Model\ArticleEditRequest;
+use app\Model\ArticleEditResponse;
 use app\Repository\ArticleRepository;
 use Exception;
 
@@ -32,6 +34,29 @@ class ArticleService
         return $response;
     }
 
+    function edit(ArticleEditRequest $request): ArticleEditResponse
+    {
+        $this->editValidation($request);
+
+        $article = new Article();
+        $article->id = $request->id;
+
+        $result = $this->articleRepository->findById($article->id);
+        $article->title = $result->title;
+        $article->userId = $result->userId;
+        $article->content = $request->content;
+
+        $updateResponse = $this->articleRepository->updateContent($article);
+        $response = new ArticleEditResponse();
+        $response->article = $updateResponse;
+        return $response;
+    }
+
+    function deleteById(int $id)
+    {
+        $this->articleRepository->deleteById($id);
+    }
+
     function getByUserId(int $userId): array
     {
         $result = $this->articleRepository->getByUserId($userId);
@@ -40,6 +65,17 @@ class ArticleService
             return $result;
         } else {
             throw new Exception("You don't have any articles yet.");
+        }
+    }
+
+    function getById(int $id): array
+    {
+        $result = $this->articleRepository->getById($id);
+
+        if ($result) {
+            return $result;
+        } else {
+            throw new Exception("Not articles ini current id.");
         }
     }
 
@@ -56,8 +92,15 @@ class ArticleService
 
     private function addValidation(ArticleAddRequest $request)
     {
-        if (trim($request->title) == '' || trim($request->title) == '') {
+        if (trim($request->title) == '' || trim($request->content) == '') {
             throw new Exception('Title or content cannot blank');
+        }
+    }
+
+    private function editValidation(ArticleEditRequest $request)
+    {
+        if (trim($request->content) == '') {
+            throw new Exception('Content cannot blank');
         }
     }
 }

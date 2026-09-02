@@ -5,6 +5,7 @@ namespace app\Controller;
 use app\App\Database;
 use app\App\View;
 use app\Model\ArticleAddRequest;
+use app\Model\ArticleEditRequest;
 use app\Repository\ArticleRepository;
 use app\Repository\UserRepository;
 use app\Service\ArticleService;
@@ -71,6 +72,54 @@ class ArticleController
                     'error' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    function edit()
+    {
+        $id = $_GET['id'] ?? 0;
+        try {
+            $article = $this->articleService->getById($id);
+            View::renderUser('/Article/edit', [
+                'title' => 'Edit Article',
+                'article' => $article
+            ]);
+        } catch (Exception $e) {
+            View::renderUser('/Article/edit', [
+                'title' => 'Edit Article',
+                'error' => $e->getMessage()
+            ]);
+        }
+
+
+    }
+
+    function postEdit()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            try {
+                $request = new ArticleEditRequest();
+                $request->id = $_POST['id'];
+                $request->content = $_POST['content'];
+
+                $this->articleService->edit($request);
+
+                header('Location: /article');
+            } catch (Exception $e) {
+                View::renderUser('/Article/edit', [
+                    'title' => 'Edit Article',
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+    }
+
+    function delete()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id = $_POST['id'];
+            $this->articleService->deleteById($id);
+            header('Location: /article');
         }
     }
 }

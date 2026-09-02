@@ -54,6 +54,20 @@ class ArticleRepository
 
     }
 
+    function getById(int $id): array|false
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM articles WHERE id=?");
+        $stmt->execute([$id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result) {
+            return $result;
+        } else {
+            return false;
+        }
+
+    }
+
     function getAll(): array|false
     {
         $stmt = $this->pdo->query("SELECT id, title, content, user_id 
@@ -65,6 +79,12 @@ class ArticleRepository
         } else {
             return false;
         }
+    }
+
+    function deleteById(int $id)
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM articles WHERE id=?");
+        $stmt->execute([$id]);
     }
 
     function deleteAll()
