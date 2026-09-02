@@ -4,6 +4,7 @@ namespace app\Controller;
 
 use app\App\Database;
 use app\App\View;
+use app\Model\UserLoginRequest;
 use app\Model\UserRegisterRequest;
 use app\Repository\UserRepository;
 use app\Service\UserService;
@@ -25,6 +26,27 @@ class AuthController
         View::renderPublic('/Auth/login', [
             'title' => 'Login'
         ]);
+    }
+
+    function postLogin()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $request = new UserLoginRequest();
+            $request->email = $_POST['email'];
+            $request->password = $_POST['password'];
+
+            try {
+                $user = $this->userService->login($request);
+                $_SESSION['login'] = true;
+                $_SESSION['email'] = $user->user->email;
+                header('Location: /');
+            } catch (Exception $e) {
+                View::renderPublic('/Auth/login', [
+                    'title' => 'Login',
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
     }
     function register()
     {
@@ -49,5 +71,11 @@ class AuthController
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    function logout()
+    {
+        $this->userService->logout();
+        header('Location: /');
     }
 }

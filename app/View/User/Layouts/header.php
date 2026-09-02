@@ -12,8 +12,8 @@
                 <h1>Logo</h1>
             </a>
             <div>
-                <a href="/login">Login</a>
-                <a href="/register">Register</a>
+                <a href="/article">Article</a>
+                <a href="/logout">Logout</a>
             </div>
         </nav>
     </header>

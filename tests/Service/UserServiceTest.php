@@ -2,6 +2,9 @@
 
 use app\App\AutoLoader;
 use app\App\Database;
+use app\Domain\User;
+use app\Model\UserLoginRequest;
+use app\Model\UserLoginResponse;
 use app\Model\UserRegisterRequest;
 use app\Model\UserRegisterResponse;
 use app\Repository\UserRepository;
@@ -81,4 +84,23 @@ function testRegisterfailedFieldEmpty()
 
 }
 
-testRegisterfailedFieldEmpty();
+function testUserLogin()
+{
+    $userRepository = new UserRepository(Database::getConnection());
+    $userService = new UserService($userRepository);
+
+    $request = new UserLoginRequest();
+    $request->email = 'ahmad56danish@gmail.com';
+    $request->password = '999922Dan';
+
+    try {
+        $response = $userService->login($request);
+        if ($response instanceof UserLoginResponse && password_verify($request->password, $response->user->password)) {
+            echo 'Login success';
+        }
+    } catch (Exception $e) {
+        echo $e->getMessage();
+    }
+}
+
+testUserLogin();

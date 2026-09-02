@@ -1,3 +1,11 @@
+<?php if (isset($model['error'])) { ?>
+    <div>
+        <p>
+            <?= $model['error'] ?>
+        </p>
+    </div>
+<?php } ?>
+
 <h2><?= $model['title'] ?></h2>
 
 <form action="/login" method="post">

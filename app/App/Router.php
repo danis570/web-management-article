@@ -2,6 +2,8 @@
 
 namespace app\App;
 
+use app\Middleware\Middleware;
+
 class Router
 {
     static array $routes = [];
@@ -10,13 +12,15 @@ class Router
         string $method,
         string $path,
         string $controller,
-        string $function
+        string $function,
+        array $middleware = []
     ) {
         self::$routes[] = [
             'method' => $method,
             'path' => $path,
             'controller' => $controller,
-            'function' => $function
+            'function' => $function,
+            'middleware' => $middleware
         ];
     }
 
@@ -30,6 +34,14 @@ class Router
 
         foreach (self::$routes as $route) {
             if ($route['path'] == $path && $route['method'] == $method) {
+
+                if ($route['middleware'] != []) {
+                    $instance = new Middleware();
+                    foreach ($route['middleware'] as $middleware) {
+                        $instance->$middleware();
+                    }
+                }
+
                 $controller = $route['controller'];
                 $function = $route['function'];
 
