@@ -34,7 +34,6 @@ function testSave()
 function testDeleteAll()
 {
     $userRepository = new UserRepository(Database::getConnection());
-    ;
 
     if ($userRepository->deleteAll()) {
         echo 'data berhaasil di delete';

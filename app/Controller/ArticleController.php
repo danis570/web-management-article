@@ -30,20 +30,37 @@ class ArticleController
 
     function article()
     {
-        try {
-            $user = $this->userService->getUserByEmail($_SESSION['email']);
-            $article = $this->articleService->getByUserId($user['id']);
+        if (($_SESSION['login'] ?? false) == true) {
+            try {
+                $user = $this->userService->getUserByEmail($_SESSION['email']);
+                $article = $this->articleService->getByUserId($user['id']);
 
-            View::renderUser('/Article/article', [
-                'title' => 'Article',
-                'article' => $article
-            ]);
-        } catch (Exception $e) {
-            View::renderUser('/Article/article', [
-                'title' => 'Article',
-                'emptyArticle' => $e->getMessage()
-            ]);
+                View::renderUser('/Article/article', [
+                    'title' => 'Article',
+                    'article' => $article
+                ]);
+            } catch (Exception $e) {
+                View::renderUser('/Article/article', [
+                    'title' => 'Article',
+                    'emptyArticle' => $e->getMessage()
+                ]);
+            }
+        } else {
+            try {
+                $article = $this->articleService->getAndUser();
+
+                View::renderPublic('/Article/article', [
+                    'title' => 'Article',
+                    'article' => $article
+                ]);
+            } catch (Exception $e) {
+                View::renderPublic('/Article/article', [
+                    'title' => 'Article',
+                    'emptyArticle' => $e->getMessage()
+                ]);
+            }
         }
+
     }
 
     function add()
@@ -78,7 +95,15 @@ class ArticleController
     function edit()
     {
         $id = $_GET['id'] ?? 0;
+
+        $user = $this->userService->getUserByEmail($_SESSION['email']);
+
         try {
+            $article = $this->articleService->getById($id);
+            if ($article['id'] != $user['id']) {
+                throw new Exception('Not Your Article');
+            }
+
             $article = $this->articleService->getById($id);
             View::renderUser('/Article/edit', [
                 'title' => 'Edit Article',
@@ -90,7 +115,6 @@ class ArticleController
                 'error' => $e->getMessage()
             ]);
         }
-
 
     }
 

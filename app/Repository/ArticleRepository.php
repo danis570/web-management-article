@@ -81,6 +81,15 @@ class ArticleRepository
         }
     }
 
+    function getAndUser(): array
+    {
+        $stmt = $this->pdo->query("SELECT title, content, name FROM articles
+        JOIN users ON articles.user_id = users.id");
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $result;
+    }
+
     function deleteById(int $id)
     {
         $stmt = $this->pdo->prepare("DELETE FROM articles WHERE id=?");

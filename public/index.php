@@ -19,7 +19,7 @@ app\App\Router::add('GET', '/login', AuthController::class, 'login', ['userNotLo
 app\App\Router::add('POST', '/login', AuthController::class, 'postLogin', ['userNotLogged']);
 app\App\Router::add('GET', '/logout', AuthController::class, 'logout', ['userHasLogged']);
 // Article
-app\App\Router::add('GET', '/article', ArticleController::class, 'article', ['userHasLogged']);
+app\App\Router::add('GET', '/article', ArticleController::class, 'article');
 app\App\Router::add('GET', '/article/add', ArticleController::class, 'add', ['userHasLogged']);
 app\App\Router::add('POST', '/article/add', ArticleController::class, 'postAdd', ['userHasLogged']);
 app\App\Router::add('GET', '/article/edit', ArticleController::class, 'edit', ['userHasLogged']);

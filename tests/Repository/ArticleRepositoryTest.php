@@ -75,4 +75,15 @@ function testGetAll()
     }
 }
 
-testSave();
+function testGetArticleAndUser()
+{
+    $articleRepo = new ArticleRepository(Database::getConnection());
+
+    $result = $articleRepo->getAndUser();
+
+    if (assert($result != [])) {
+        echo 'test success';
+    }
+}
+
+testGetArticleAndUser();

@@ -75,7 +75,7 @@ class ArticleService
         if ($result) {
             return $result;
         } else {
-            throw new Exception("Not articles ini current id.");
+            throw new Exception("Not articles in current id.");
         }
     }
 
@@ -88,6 +88,11 @@ class ArticleService
         } else {
             throw new Exception("No Aarticles Yet.");
         }
+    }
+
+    function getAndUser(): array
+    {
+        return $this->articleRepository->getAndUser();
     }
 
     private function addValidation(ArticleAddRequest $request)

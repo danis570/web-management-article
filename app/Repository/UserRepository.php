@@ -28,6 +28,14 @@ class UserRepository
         return $user;
     }
 
+    public function getAll(): array
+    {
+        $stmt = $this->pdo->query("SELECT * FROM users");
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $result;
+    }
+
     public function findByEmail(string $email): ?User
     {
         $stmt = $this->pdo->prepare("SELECT id, name, email, password FROM users WHERE email=?");

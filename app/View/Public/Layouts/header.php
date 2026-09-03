@@ -12,6 +12,7 @@
                 <h1>Logo</h1>
             </a>
             <div>
+                <a href="/article">Article</a>
                 <a href="/login">Login</a>
                 <a href="/register">Register</a>
             </div>

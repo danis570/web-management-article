@@ -92,6 +92,11 @@ class UserService
         session_destroy();
     }
 
+    public function getAll(): array
+    {
+        return $this->userRepository->getAll();
+    }
+
     function getUserByEmail(string $email): array
     {
         $result = $this->userRepository->findByEmail($email);
