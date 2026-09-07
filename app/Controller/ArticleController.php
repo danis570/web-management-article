@@ -30,18 +30,24 @@ class ArticleController
 
     function article()
     {
+        if (($_SESSION['admin'] ?? false) == true) {
+            header('Location: /');
+        }
+
         if (($_SESSION['login'] ?? false) == true) {
             try {
                 $user = $this->userService->getUserByEmail($_SESSION['email']);
-                $article = $this->articleService->getByUserId($user['id']);
+                $article = $this->articleService->getByUserId($user->id);
 
                 View::renderUser('/Article/article', [
                     'title' => 'Article',
+                    'current' => 'article',
                     'article' => $article
                 ]);
             } catch (Exception $e) {
                 View::renderUser('/Article/article', [
                     'title' => 'Article',
+                    'current' => 'article',
                     'emptyArticle' => $e->getMessage()
                 ]);
             }
@@ -51,16 +57,26 @@ class ArticleController
 
                 View::renderPublic('/Article/article', [
                     'title' => 'Article',
+                    'current' => 'article',
                     'article' => $article
                 ]);
             } catch (Exception $e) {
                 View::renderPublic('/Article/article', [
                     'title' => 'Article',
+                    'current' => 'article',
                     'emptyArticle' => $e->getMessage()
                 ]);
             }
         }
 
+    }
+
+    function detail()
+    {
+        View::renderPublic('/Article/detail', [
+            'title' => 'Article Detail',
+            'current' => 'article'
+        ]);
     }
 
     function add()
@@ -100,8 +116,8 @@ class ArticleController
 
         try {
             $article = $this->articleService->getById($id);
-            if ($article['id'] != $user['id']) {
-                throw new Exception('Not Your Article');
+            if ($article['user_id'] != $user['id']) {
+                throw new Exception('ID Not Valid');
             }
 
             $article = $this->articleService->getById($id);

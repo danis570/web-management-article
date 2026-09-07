@@ -92,7 +92,19 @@ class ArticleService
 
     function getAndUser(): array
     {
-        return $this->articleRepository->getAndUser();
+        $result = $this->articleRepository->getAndUser();
+
+        foreach ($result as &$article) {
+            if (strlen($article['content']) > 25) {
+                $article['content'] = substr($article['content'], 0, 25) . '.....';
+            }
+        }
+
+        if ($result) {
+            return $result;
+        } else {
+            throw new Exception("No Aarticles Yet.");
+        }
     }
 
     private function addValidation(ArticleAddRequest $request)

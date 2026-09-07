@@ -14,6 +14,7 @@ function testSave()
 
     $user = new User();
     $user->name = 'Test';
+    $user->name = '';
     $user->email = 'email@gmail.com';
     $user->password = 'rahasia';
     $result = $userRepository->save($user);

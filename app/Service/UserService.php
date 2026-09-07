@@ -3,6 +3,7 @@
 namespace app\Service;
 
 use app\Domain\User;
+use app\Domain\UserRole;
 use app\Model\UserLoginRequest;
 use app\Model\UserLoginResponse;
 use app\Model\UserRegisterRequest;
@@ -19,14 +20,22 @@ class UserService
         $this->userRepository = $userRepository;
     }
 
-    public function register(UserRegisterRequest $request): UserRegisterResponse
+    public function register(UserRegisterRequest $request, array $imgFileInfo): UserRegisterResponse
     {
         $this->registerValidation($request);
+        $this->registerUploadImgValidation($imgFileInfo['img_name'], $imgFileInfo['img_size']);
+        $imgPath = '/uploads/user-img/' .
+            $this->registerMoveUploadImg($imgFileInfo['img_name'], $imgFileInfo['img_temp_name'], $imgFileInfo['img_error']);
 
         $user = new User();
         $user->name = $request->name;
+        $user->role = $request->role;
+        $user->position = $request->position;
+        $user->period = $request->period;
+        $user->img = $imgPath;
         $user->email = $request->email;
         $user->password = password_hash($request->password, PASSWORD_BCRYPT);
+
         $this->userRepository->save($user);
 
         $response = new UserRegisterResponse();
@@ -38,6 +47,8 @@ class UserService
     {
         if (
             trim($request->name) == '' ||
+            trim($request->position) == '' ||
+            trim($request->period) == '' ||
             trim($request->email) == '' ||
             trim($request->password) == ''
         ) {
@@ -54,11 +65,46 @@ class UserService
         }
     }
 
+    private function registerUploadImgValidation(string $imgName, string $imgSize)
+    {
+        $name = $imgName;
+        $size = $imgSize;
+
+        $validImgExtension = ['png', 'webp', 'jpg', 'jpeg', 'svg'];
+
+        $imgExtension = explode('.', $name);
+        $imgExtension = strtolower(end($imgExtension));
+
+        if (!in_array($imgExtension, $validImgExtension)) {
+            throw new Exception('Img format must png, webp, jpg, jpeg, svg');
+        }
+
+        if ((int) $size >= 5000) {
+            throw new Exception('Max size: 5kb');
+        }
+    }
+
+    private function registerMoveUploadImg(string $imgName, string $imgTempName, string $status): string
+    {
+        $path = __DIR__ . '/../../public/uploads/user-img/';
+        $name = uniqid() . '-' . $imgName;
+        $fullPath = $path . $name;
+        if ((int) $status == 0) {
+            move_uploaded_file($imgTempName, $fullPath);
+            return $name;
+        } else {
+            throw new Exception('Error upload img');
+        }
+    }
+
     public function login(UserLoginRequest $request): UserLoginResponse
     {
         $this->loginValidation($request);
-
         $user = $this->userRepository->findByEmail($request->email);
+        if ($user === null) {
+            throw new Exception('Email or password is wrong');
+        }
+
         $userResponse = new UserLoginResponse();
 
         if ($user != null) {
@@ -94,18 +140,21 @@ class UserService
 
     public function getAll(): array
     {
-        return $this->userRepository->getAll();
+        if ($this->userRepository->getAll()) {
+            return $this->userRepository->getAll();
+        } else {
+            throw new Exception('Not users yet');
+        }
     }
 
-    function getUserByEmail(string $email): array
+    function getUserByEmail(string $email): User
     {
         $result = $this->userRepository->findByEmail($email);
 
-        return $user = [
-            'id' => $result->id,
-            'name' => $result->name,
-            'email' => $result->email,
-            'password' => $result->password
-        ] ?? throw new Exception('User not found');
+        if ($result === null) {
+            throw new Exception('User not found');
+        }
+
+        return $result;
     }
 }

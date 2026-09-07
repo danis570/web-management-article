@@ -3,6 +3,7 @@
 namespace app\Repository;
 
 use app\Domain\User;
+use app\Domain\UserRole;
 use PDO;
 
 class UserRepository
@@ -17,10 +18,14 @@ class UserRepository
     public function save(User $user): User
     {
         $stmt = $this->pdo->prepare("INSERT INTO users
-        (id, name, email, password) VALUES (?, ?, ?, ?)");
+        (id, name, role, position, period, img, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $user->id,
             $user->name,
+            $user->role->value,
+            $user->position,
+            $user->period,
+            $user->img,
             $user->email,
             $user->password
         ]);
@@ -38,7 +43,7 @@ class UserRepository
 
     public function findByEmail(string $email): ?User
     {
-        $stmt = $this->pdo->prepare("SELECT id, name, email, password FROM users WHERE email=?");
+        $stmt = $this->pdo->prepare("SELECT id, name, role, position, period, img, email, password FROM users WHERE email=?");
         $stmt->execute([$email]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -49,6 +54,10 @@ class UserRepository
         $user = new User();
         $user->id = $result['id'];
         $user->name = $result['name'];
+        $user->role = UserRole::from($result['role']);
+        $user->position = $result['position'];
+        $user->period = $result['period'];
+        $user->img = $result['img'];
         $user->email = $result['email'];
         $user->password = $result['password'];
 

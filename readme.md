@@ -1,0 +1,1 @@
+multi foto & multi owner article

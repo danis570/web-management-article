@@ -4,6 +4,7 @@ namespace app\Controller;
 
 use app\App\Database;
 use app\App\View;
+use app\Domain\UserRole;
 use app\Repository\UserRepository;
 use app\Service\UserService;
 
@@ -26,12 +27,22 @@ class HomeController
             return;
         }
 
-        $user = $this->userService->getUserByEmail($_SESSION['email']);
+        $user = $this->userService->getUserByEmail($_SESSION['email'] ?? '');
+
+        if ($user->role === UserRole::ADMIN) {
+            View::renderAdmin('/dashboard', [
+                'title' => 'Blog App - by: Danish',
+                'user' => [
+                    'name' => $user->name
+                ]
+            ]);
+            return;
+        }
 
         View::renderUser('/dashboard', [
             'title' => 'Blog App - by: Danish',
             'user' => [
-                'name' => $user['name']
+                'name' => $user->name
             ]
         ]);
     }
