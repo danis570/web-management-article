@@ -35,6 +35,6 @@
                 <?php } ?>
 
             </ul>
-            <button class="mobile-menu-button">☰</button>
+             <button class="mobile-menu-button" id="menuBtn">☰</button>
         </div>
     </nav>

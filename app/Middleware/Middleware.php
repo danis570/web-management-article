@@ -18,7 +18,7 @@ class Middleware
             exit();
         }
 
-        if ($_SESSION['admin'] == true) {
+        if (($_SESSION['admin'] ?? false) == true) {
             header('Location: /');
             exit();
         }

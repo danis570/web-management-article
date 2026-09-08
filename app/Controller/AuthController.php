@@ -81,6 +81,7 @@ class AuthController
 
         try {
             $this->userService->register($request, $imgFileInfo);
+            $_SESSION['flash_message'] = 'Success add new user';
             header('Location: /users');
             exit();
         } catch (Exception $e) {

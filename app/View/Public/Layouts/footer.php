@@ -52,8 +52,18 @@
 
 <!-- Mobile menu script -->
 <script>
-    document.querySelector('.mobile-menu-button').addEventListener('click', function () {
-        document.querySelector('.menu').classList.toggle('active');
+    document.getElementById('menuBtn').addEventListener('click', function () {
+        const menu = document.querySelector('.menu');
+        
+        // 1. Toggle class active untuk memunculkan/menyembunyikan menu
+        menu.classList.toggle('active');
+        
+        // 2. Cek apakah menu saat ini sedang aktif (terbuka) atau tidak
+        if (menu.classList.contains('active')) {
+            this.textContent = '✕'; // Ubah tombol menjadi X jika terbuka
+        } else {
+            this.textContent = '☰'; // Kembalikan ke ikon Hamburger jika tertutup
+        }
     });
 </script>
 

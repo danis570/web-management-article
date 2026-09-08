@@ -25,15 +25,38 @@ class UserController
             $user = $this->userService->getAll();
             View::renderAdmin('/User/users', [
                 'title' => 'Users',
+                'current' => 'users',
                 'user' => $user
             ]);
         } catch (Exception $e) {
             $user = $this->userService->getAll();
             View::renderAdmin('/User/users', [
                 'title' => 'Users',
+                'current' => 'users',
                 'user' => $user,
                 'error' => $e->getMessage()
             ]);
         }
     }
+
+    function search()
+    {
+        $keyword = $_GET['keyword'] ?? '';
+
+        $user = $this->userService->getUserByEmail(
+            $_SESSION['email']
+        );
+
+        $users = $this->userService->search(
+            $keyword,
+            $user->id
+        );
+
+        header('Content-Type: application/json');
+
+        echo json_encode($users);
+        exit();
+    }
+
+
 }

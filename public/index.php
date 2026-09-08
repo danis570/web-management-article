@@ -22,6 +22,8 @@ app\App\Router::add('GET', '/users', UserController::class, 'users', ['adminOnly
 // User Only
 app\App\Router::add('GET', '/login', AuthController::class, 'login', ['guestOnly']);
 app\App\Router::add('POST', '/login', AuthController::class, 'postLogin', ['guestOnly']);
+app\App\Router::add('GET', '/user/search', UserController::class, 'search', []);
+
 // User And Admin
 app\App\Router::add('GET', '/logout', AuthController::class, 'logout', ['userAndAdmin']);
 

@@ -25,12 +25,15 @@ class ArticleService
 
         $article = new Article();
         $article->title = $request->title;
+        $article->slug = $this->createSlug($request->title);
         $article->content = $request->content;
-        $article->userId = $request->userId;
+        $article->status = 'draft';
 
         $result = $this->articleRepository->save($article);
+
         $response = new ArticleAddResponse();
         $response->article = $result;
+
         return $response;
     }
 
@@ -38,21 +41,24 @@ class ArticleService
     {
         $this->editValidation($request);
 
-        $article = new Article();
-        $article->id = $request->id;
+        $article = $this->articleRepository->findById($request->id);
 
-        $result = $this->articleRepository->findById($article->id);
-        $article->title = $result->title;
-        $article->userId = $result->userId;
+        if (!$article) {
+            throw new Exception("Article not found.");
+        }
+
+        $article->title = $request->title;
         $article->content = $request->content;
 
-        $updateResponse = $this->articleRepository->updateContent($article);
+        $result = $this->articleRepository->update($article);
+
         $response = new ArticleEditResponse();
-        $response->article = $updateResponse;
+        $response->article = $result;
+
         return $response;
     }
 
-    function deleteById(int $id)
+    function deleteById(int $id): void
     {
         $this->articleRepository->deleteById($id);
     }
@@ -63,9 +69,9 @@ class ArticleService
 
         if ($result) {
             return $result;
-        } else {
-            throw new Exception("You don't have any articles yet.");
         }
+
+        throw new Exception("You don't have any articles yet.");
     }
 
     function getById(int $id): array
@@ -74,9 +80,9 @@ class ArticleService
 
         if ($result) {
             return $result;
-        } else {
-            throw new Exception("Not articles in current id.");
         }
+
+        throw new Exception("Article not found.");
     }
 
     function getAll(): array
@@ -85,39 +91,63 @@ class ArticleService
 
         if ($result) {
             return $result;
-        } else {
-            throw new Exception("No Aarticles Yet.");
         }
+
+        throw new Exception("No articles yet.");
     }
 
     function getAndUser(): array
     {
         $result = $this->articleRepository->getAndUser();
 
+        if (!$result) {
+            throw new Exception("No articles yet.");
+        }
+
         foreach ($result as &$article) {
             if (strlen($article['content']) > 25) {
-                $article['content'] = substr($article['content'], 0, 25) . '.....';
+                $article['content'] = substr(
+                    $article['content'],
+                    0,
+                    25
+                ) . '.....';
             }
         }
 
-        if ($result) {
-            return $result;
-        } else {
-            throw new Exception("No Aarticles Yet.");
+        return $result;
+    }
+
+    function incrementViewCount(int $id): void
+    {
+        $this->articleRepository->incrementViewCount($id);
+    }
+
+    private function createSlug(string $title): string
+    {
+        $slug = strtolower(trim($title));
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+        $slug = trim($slug, '-');
+
+        return $slug;
+    }
+
+    private function addValidation(ArticleAddRequest $request): void
+    {
+        if (
+            trim($request->title) === '' ||
+            trim($request->content) === ''
+        ) {
+            throw new Exception('Title or content cannot be blank');
         }
     }
 
-    private function addValidation(ArticleAddRequest $request)
+    private function editValidation(ArticleEditRequest $request): void
     {
-        if (trim($request->title) == '' || trim($request->content) == '') {
-            throw new Exception('Title or content cannot blank');
+        if (trim($request->title) === '') {
+            throw new Exception('Title cannot be blank');
         }
-    }
-
-    private function editValidation(ArticleEditRequest $request)
-    {
-        if (trim($request->content) == '') {
-            throw new Exception('Content cannot blank');
+        if (trim($request->content) === '') {
+            throw new Exception('Content cannot be blank');
         }
     }
 }

@@ -41,6 +41,39 @@ class UserRepository
         return $result;
     }
 
+
+    public function search(
+        string $keyword,
+        int $excludeUserId,
+        int $limit = 10
+    ): array {
+        $stmt = $this->pdo->prepare("
+        SELECT id, name, email, img
+        FROM users
+        WHERE id != ?
+          AND role != 'admin'
+          AND (
+              name LIKE ?
+              OR email LIKE ?
+          )
+        ORDER BY name ASC
+        LIMIT ?
+    ");
+
+        $search = '%' . $keyword . '%';
+
+        $stmt->bindValue(1, $excludeUserId, PDO::PARAM_INT);
+        $stmt->bindValue(2, $search, PDO::PARAM_STR);
+        $stmt->bindValue(3, $search, PDO::PARAM_STR);
+        $stmt->bindValue(4, $limit, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_CLASS, User::class);
+    }
+
+
+
     public function findByEmail(string $email): ?User
     {
         $stmt = $this->pdo->prepare("SELECT id, name, role, position, period, img, email, password FROM users WHERE email=?");

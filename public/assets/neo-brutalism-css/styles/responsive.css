@@ -70,11 +70,11 @@
         left: 0;
         width: 100%;
         flex-direction: column;
-        background-color: var(--light);
+        background-color: var(--main-bg);
         padding: var(--space-md);
         border-top: var(--border-width-bold) solid var(--dark);
         border-bottom: var(--border-width-bold) solid var(--dark);
-        gap: 15px;
+        gap: var(--space-md);
         z-index: 100;
     }
 
@@ -92,7 +92,7 @@
 
     .neo-button-group {
         flex-direction: column;
-        gap: 15px;
+          gap: var(--space-md);
     }
 
     .section-title {

@@ -1,2 +1,15 @@
-<h2><?= $model['title'] ?></h2>
-<p>hello <?= $model['user']['name'] ?></p>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="article-header">
+                    <h3>
+                        Welcome back<span class="highlight highlight-yellow">Administrator</span>
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>

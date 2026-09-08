@@ -23,16 +23,21 @@ class UserService
     public function register(UserRegisterRequest $request, array $imgFileInfo): UserRegisterResponse
     {
         $this->registerValidation($request);
-        $this->registerUploadImgValidation($imgFileInfo['img_name'], $imgFileInfo['img_size']);
-        $imgPath = '/uploads/user-img/' .
-            $this->registerMoveUploadImg($imgFileInfo['img_name'], $imgFileInfo['img_temp_name'], $imgFileInfo['img_error']);
 
         $user = new User();
+        if ($request->img != null) {
+            $this->registerUploadImgValidation($imgFileInfo['img_name'], $imgFileInfo['img_size']);
+            $imgPath = '/uploads/user-img/' .
+                $this->registerMoveUploadImg($imgFileInfo['img_name'], $imgFileInfo['img_temp_name'], $imgFileInfo['img_error']);
+            $user->img = $imgPath;
+        } else {
+            $user->img = $request->img;
+        }
+
         $user->name = $request->name;
         $user->role = $request->role;
         $user->position = $request->position;
         $user->period = $request->period;
-        $user->img = $imgPath;
         $user->email = $request->email;
         $user->password = password_hash($request->password, PASSWORD_BCRYPT);
 
@@ -79,8 +84,8 @@ class UserService
             throw new Exception('Img format must png, webp, jpg, jpeg, svg');
         }
 
-        if ((int) $size >= 5000) {
-            throw new Exception('Max size: 5kb');
+        if ((int) $size >= 100000) {
+            throw new Exception('Max size: 100kb');
         }
     }
 
@@ -145,6 +150,24 @@ class UserService
         } else {
             throw new Exception('Not users yet');
         }
+    }
+
+    public function search(
+        string $keyword,
+        int $excludeUserId,
+        int $limit = 10
+    ): array {
+        $keyword = trim($keyword);
+
+        if ($keyword === '') {
+            return [];
+        }
+
+        return $this->userRepository->search(
+            $keyword,
+            $excludeUserId,
+            $limit
+        );
     }
 
     function getUserByEmail(string $email): User
