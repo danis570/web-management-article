@@ -6,6 +6,7 @@ session_start();
 
 use app\Controller\ArticleController;
 use app\Controller\AuthController;
+use app\Controller\TagController;
 use app\Controller\UserController;
 
 require_once __DIR__ . '/../app/App/AutoLoader.php';
@@ -34,8 +35,11 @@ app\App\Router::add('POST', '/article/add', ArticleController::class, 'postAdd',
 app\App\Router::add('GET', '/article/edit', ArticleController::class, 'edit', ['userOnly']);
 app\App\Router::add('POST', '/article/edit', ArticleController::class, 'postEdit', ['userOnly']);
 app\App\Router::add('POST', '/article/delete', ArticleController::class, 'delete', ['userOnly']);
+app\App\Router::add('GET', '/me/article', ArticleController::class, 'myArticle', ['userOnly']);
 
-app\App\Router::add('GET', '/article/detail', ArticleController::class, 'detail', ['guestOnly']);
+app\App\Router::add('GET', '/article/{slug}', ArticleController::class, 'detail');
+
+app\App\Router::add('GET', '/tag/search', TagController::class, 'search');
 
 // Run all route
 app\App\Router::run();

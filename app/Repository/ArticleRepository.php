@@ -51,6 +51,15 @@ class ArticleRepository
 
         return $article;
     }
+
+    public function getBySlug(string $slug): array|false
+    {
+        $stmt = $this->pdo->prepare(" SELECT a.id, a.title, a.slug, a.content, a.view_count, a.status, a.created_at, a.updated_at, GROUP_CONCAT( DISTINCT u.name ORDER BY u.name ASC SEPARATOR ', ' ) AS authors, GROUP_CONCAT( DISTINCT u.img ORDER BY u.name ASC SEPARATOR ',' ) AS author_images, GROUP_CONCAT( DISTINCT t.name ORDER BY t.name ASC SEPARATOR ',' ) AS tags FROM articles a JOIN article_user au ON au.article_id = a.id JOIN users u ON u.id = au.user_id LEFT JOIN article_tag at ON at.article_id = a.id LEFT JOIN tags t ON t.id = at.tag_id WHERE a.slug = ? AND a.deleted_at IS NULL GROUP BY a.id LIMIT 1 ");
+        $stmt->execute([$slug]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: false;
+    }
+    
     public function getByUserId(int $userId): array|false
     {
         $sql = "
@@ -126,26 +135,49 @@ class ArticleRepository
         return $result ?: false;
     }
 
+
+
     function getAndUser(): array
     {
         $stmt = $this->pdo->query("
-            SELECT
-                a.id,
-                a.title,
-                a.slug,
-                a.content,
-                a.view_count,
-                a.status,
-                a.created_at,
-                a.updated_at,
-                u.id AS user_id,
-                u.name AS user_name
-            FROM articles a
-            JOIN article_user au ON au.article_id = a.id
-            JOIN users u ON u.id = au.user_id
-            WHERE a.deleted_at IS NULL
-            ORDER BY a.created_at DESC
-        ");
+        SELECT
+            a.id,
+            a.title,
+            a.slug,
+            a.content,
+            a.view_count,
+            a.status,
+            a.created_at,
+            a.updated_at,
+
+            GROUP_CONCAT(
+                DISTINCT u.name
+                ORDER BY u.name ASC
+                SEPARATOR ', '
+            ) AS authors,
+
+            (
+                SELECT ai.image
+                FROM article_images ai
+                WHERE ai.article_id = a.id
+                ORDER BY ai.id ASC
+                LIMIT 1
+            ) AS image
+
+        FROM articles a
+
+        JOIN article_user au
+            ON au.article_id = a.id
+
+        JOIN users u
+            ON u.id = au.user_id
+
+        WHERE a.deleted_at IS NULL
+
+        GROUP BY a.id
+
+        ORDER BY a.created_at DESC
+    ");
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

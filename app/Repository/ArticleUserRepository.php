@@ -129,4 +129,22 @@ class ArticleUserRepository
 
         $stmt->execute([$articleId]);
     }
+
+    public function exists(int $articleId, int $userId): bool
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT 1
+        FROM article_user
+        WHERE article_id = ?
+        AND user_id = ?
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            $articleId,
+            $userId
+        ]);
+
+        return $stmt->fetchColumn() !== false;
+    }
 }

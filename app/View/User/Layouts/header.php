@@ -25,7 +25,8 @@
                     <li><a href="/article">Artikel</a></li>
                 <?php } ?>
 
-                <li><a href="/prifile">Profil</a></li>
+                <li><a href="/me/article">Artikel saya</a></li>
+                <li><a href="/profile">Profil</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
             <button class="mobile-menu-button" id="menuBtn">☰</button>

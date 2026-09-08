@@ -8,11 +8,15 @@ use app\Model\ArticleAddRequest;
 use app\Model\ArticleEditRequest;
 use app\Repository\ArticleImageRepository;
 use app\Repository\ArticleRepository;
+use app\Repository\ArticleTagRepository;
 use app\Repository\ArticleUserRepository;
+use app\Repository\TagRepository;
 use app\Repository\UserRepository;
 use app\Service\ArticleImageService;
 use app\Service\ArticleService;
+use app\Service\ArticleTagService;
 use app\Service\ArticleUserService;
+use app\Service\TagService;
 use app\Service\UserService;
 use Exception;
 
@@ -22,6 +26,8 @@ class ArticleController
 
     private ArticleImageService $articleImageService;
     private ArticleUserService $articleUserService;
+    private TagService $tagService;
+    private ArticleTagService $articleTagService;
 
     private UserService $userService;
 
@@ -37,6 +43,12 @@ class ArticleController
             $articleUserRepository
         );
 
+        $tagRepository = new TagRepository($pdo);
+        $this->tagService = new TagService($tagRepository);
+
+        $articleTagRepository = new ArticleTagRepository($pdo);
+        $this->articleTagService = new ArticleTagService($articleTagRepository);
+
         $articleImageRepository = new ArticleImageRepository($pdo);
         $this->articleImageService = new ArticleImageService(
             $articleImageRepository
@@ -46,95 +58,96 @@ class ArticleController
         $this->userService = new UserService($userRepository);
     }
 
-    function article()
+    public function article(): void
     {
         // Admin tidak boleh mengakses halaman artikel user
-        if (($_SESSION['admin'] ?? false) == true) {
+        if ($_SESSION['admin'] ?? false) {
             header('Location: /');
             exit();
         }
 
-        // Jika user sudah login
-        if (($_SESSION['login'] ?? false) == true) {
-
-            try {
-
-                $user = $this->userService->getUserByEmail(
-                    $_SESSION['email']
-                );
-
-                $article = $this->articleService->getByUserId(
-                    $user->id
-                );
-
-                View::renderUser('/Article/article', [
-                    'title' => 'Article',
-                    'current' => 'article',
-                    'article' => $article
-                ]);
-
-            } catch (Exception $e) {
-
-                View::renderUser('/Article/article', [
-                    'title' => 'Article',
-                    'current' => 'article',
-                    'emptyArticle' => $e->getMessage()
-                ]);
-            }
-
-        } else {
-
-            // Public
-            try {
-
-                $article = $this->articleService->getAndUser();
-
-                View::renderPublic('/Article/article', [
-                    'title' => 'Article',
-                    'current' => 'article',
-                    'article' => $article
-                ]);
-
-            } catch (Exception $e) {
-
-                View::renderPublic('/Article/article', [
-                    'title' => 'Article',
-                    'current' => 'article',
-                    'emptyArticle' => $e->getMessage()
-                ]);
-            }
-        }
-    }
-
-    function detail()
-    {
-        $id = $_GET['id'] ?? 0;
+        $isLoggedIn = $_SESSION['login'] ?? false;
+        $data = [
+            'title' => 'Article',
+            'current' => 'article',
+        ];
 
         try {
-
-            $article = $this->articleService->getById((int) $id);
-
-            // Ambil semua gambar artikel
-            $images = $this->articleImageService->getByArticleId(
-                (int) $id
-            );
-
-            View::renderPublic('/Article/detail', [
-                'title' => $article['title'],
-                'current' => 'article',
-                'article' => $article,
-                'images' => $images
-            ]);
-
+            // Ambil semua artikel
+            $data['article'] = $this->articleService->getAndUser();
         } catch (Exception $e) {
+            $data['emptyArticle'] = $e->getMessage();
+        }
 
-            View::renderPublic('/Article/detail', [
-                'title' => 'Article Detail',
-                'current' => 'article',
-                'error' => $e->getMessage()
-            ]);
+        // Render view berdasarkan status login
+        if ($isLoggedIn) {
+            View::renderUser('/Article/article', $data);
+        } else {
+            View::renderPublic('/Article/article', $data);
         }
     }
+
+    public function myArticle(): void
+    {
+        // Admin tidak boleh mengakses halaman artikel user
+        if ($_SESSION['admin'] ?? false) {
+            header('Location: /');
+            exit();
+        }
+
+        // Harus login
+        if (!($_SESSION['login'] ?? false)) {
+            header('Location: /login');
+            exit();
+        }
+
+        $data = [
+            'title' => 'My Article',
+            'current' => 'my-article',
+        ];
+
+        try {
+            $user = $this->userService->getUserByEmail($_SESSION['email']);
+            $data['article'] = $this->articleService->getByUserId($user->id);
+        } catch (Exception $e) {
+            $data['emptyArticle'] = $e->getMessage();
+        }
+
+        View::renderUser('/Article/me', $data);
+    }
+
+    public function detail(array $params): void
+    {
+        $slug = $params['slug'] ?? '';
+        $isLoggedIn = $_SESSION['login'] ?? false;
+
+        $data = [
+            'title' => 'Article Detail',
+            'current' => 'article',
+        ];
+
+        try {
+            $article = $this->articleService->getBySlug($slug);
+
+            if (!$article) {
+                throw new Exception('Article not found.');
+            }
+
+            $data['title'] = $article['title'];
+            $data['article'] = $article;
+            $data['images'] = $this->articleImageService->getByArticleId($article['id']);
+
+        } catch (Exception $e) {
+            $data['error'] = $e->getMessage();
+        }
+
+        if ($isLoggedIn) {
+            View::renderUser('/Article/detail', $data);
+        } else {
+            View::renderPublic('/Article/detail', $data);
+        }
+    }
+
 
     function add()
     {
@@ -187,6 +200,18 @@ class ArticleController
                 }
             }
 
+            // Tambahkan tag artikel
+            $selectedTags = $_POST['selectedTags'] ?? [];
+
+            if (!is_array($selectedTags)) {
+                $selectedTags = [];
+            }
+
+            $this->articleTagService->sync(
+                $article->id,
+                $selectedTags
+            );
+
             if (isset($_FILES['images']['name']) && is_array($_FILES['images']['name'])) {
 
                 $captions = $_POST['captions'] ?? [];
@@ -236,14 +261,38 @@ class ArticleController
     function edit()
     {
         $id = (int) ($_GET['id'] ?? 0);
+
         try {
             $user = $this->userService->getUserByEmail($_SESSION['email']);
+
+            // Validasi hak akses
+            $this->articleUserService->validateUserCanEdit(
+                $id,
+                $user->id
+            );
+
             $article = $this->articleService->getById($id);
+
             $images = $this->articleImageService->getByArticleId($id);
+
             $articleUsers = $this->articleUserService->getUsersByArticleId($id);
-            View::renderUser('/Article/edit', ['title' => 'Edit Article', 'article' => $article, 'images' => $images, 'articleUsers' => $articleUsers, 'currentUserId' => $user->id]);
+
+            $articleTags = $this->articleTagService->getByArticleId($id);
+
+            View::renderUser('/Article/edit', [
+                'title' => 'Edit Article',
+                'article' => $article,
+                'images' => $images,
+                'articleUsers' => $articleUsers,
+                'articleTags' => $articleTags,
+                'currentUserId' => $user->id
+            ]);
+
         } catch (Exception $e) {
-            View::renderUser('/Article/edit', ['title' => 'Edit Article', 'error' => $e->getMessage()]);
+            View::renderUser('/Article/edit', [
+                'title' => 'Edit Article',
+                'error' => $e->getMessage()
+            ]);
         }
     }
     function postEdit()
@@ -260,6 +309,10 @@ class ArticleController
 
             $articleId = (int) ($_POST['id'] ?? 0);
 
+            $this->articleUserService->validateUserCanEdit(
+                $articleId,
+                $user->id
+            );
 
             /*
             |--------------------------------------------------------------------------
@@ -297,6 +350,23 @@ class ArticleController
             $this->articleUserService->sync(
                 $articleId,
                 $selectedUsers
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sync Tag Article
+            |--------------------------------------------------------------------------
+            */
+
+            $selectedTags = $_POST['selectedTags'] ?? [];
+
+            if (!is_array($selectedTags)) {
+                $selectedTags = [];
+            }
+
+            $this->articleTagService->sync(
+                $articleId,
+                $selectedTags
             );
 
 

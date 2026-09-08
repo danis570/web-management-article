@@ -205,108 +205,107 @@
                     <?= htmlspecialchars($model['error']) ?>
                 </div>
 
-            <?php } ?>
+            <?php } else { ?>
 
-
-            <!-- ==================================================
+                <!-- ==================================================
                  CARD
             ================================================== -->
 
-            <div class="neo-card login-card" style="
+                <div class="neo-card login-card" style="
                     width: 100%;
                     max-width: 700px;
                     margin: 0 auto;
                     box-sizing: border-box;
                 ">
 
-                <!-- HEADER -->
+                    <!-- HEADER -->
 
-                <div class="text-center mb-lg">
+                    <div class="text-center mb-lg">
 
-                    <h3>
-                        <?= htmlspecialchars(
-                            $model['title'] ?? 'Edit Article'
-                        ) ?>
-                    </h3>
+                        <h3>
+                            <?= htmlspecialchars(
+                                $model['title'] ?? 'Edit Article'
+                            ) ?>
+                        </h3>
 
-                </div>
+                    </div>
 
 
-                <!-- ==================================================
+                    <!-- ==================================================
                      FORM
                 ================================================== -->
 
-                <form action="" method="post" enctype="multipart/form-data" id="articleForm">
+                    <form action="" method="post" enctype="multipart/form-data" id="articleForm">
 
-                    <!-- ID ARTICLE -->
+                        <!-- ID ARTICLE -->
 
-                    <input type="hidden" name="id" value="<?= (int) ($model['article']['id'] ?? 0) ?>">
+                        <input type="hidden" name="id" value="<?= (int) ($model['article']['id'] ?? 0) ?>">
 
 
-                    <!-- ==================================================
+                        <!-- ==================================================
                          TITLE
                     ================================================== -->
 
-                    <div class="mb-md">
+                        <div class="mb-md">
 
-                        <label for="title" class="font-semibold block mb-sm">
-                            Title
-                        </label>
+                            <label for="title" class="font-semibold block mb-sm">
+                                Title
+                            </label>
 
-                        <input type="text" name="title" id="title" class="login-input"
-                            placeholder="Masukkan judul artikel" value="<?= htmlspecialchars(
-                                $_POST['title']
-                                ?? $model['article']['title']
-                                ?? ''
-                            ) ?>" required>
+                            <input type="text" name="title" id="title" class="login-input"
+                                placeholder="Masukkan judul artikel" value="<?= htmlspecialchars(
+                                    $_POST['title']
+                                    ?? $model['article']['title']
+                                    ?? ''
+                                ) ?>" required>
 
-                    </div>
+                        </div>
 
 
-                    <!-- ==================================================
+                        <!-- ==================================================
                          CONTENT
                     ================================================== -->
 
-                    <div class="mb-lg">
+                        <div class="mb-lg">
 
-                        <label class="font-semibold block mb-sm">
-                            Content
-                        </label>
+                            <label class="font-semibold block mb-sm">
+                                Content
+                            </label>
 
-                        <div id="editor" class="pell"></div>
+                            <div id="editor" class="pell"></div>
 
-                    </div>
-
-
-                    <!-- Hidden Content -->
-
-                    <input type="hidden" name="content" id="hiddenContent" value="<?= htmlspecialchars(
-                        $_POST['content']
-                        ?? $model['article']['content']
-                        ?? ''
-                    ) ?>">
+                        </div>
 
 
-                    <!-- ==================================================
+                        <!-- Hidden Content -->
+
+                        <input type="hidden" name="content" id="hiddenContent" value="<?= htmlspecialchars(
+                            $_POST['content']
+                            ?? $model['article']['content']
+                            ?? ''
+                        ) ?>">
+
+
+                        <!-- ==================================================
                          SHARE ARTICLE
                     ================================================== -->
 
-                    <div class="mb-lg">
+                        <div class="mb-lg">
 
-                        <label for="userSearch" class="font-semibold block mb-sm">
-                            Bagikan Artikel Dengan
-                        </label>
-
-
-                        <!-- SEARCH -->
-
-                        <input type="text" id="userSearch" class="login-input"
-                            placeholder="Cari berdasarkan nama atau email..." autocomplete="off">
+                            <label for="userSearch" class="font-semibold block mb-sm">
+                                Bagikan Artikel Dengan
+                            </label>
 
 
-                        <!-- SEARCH RESULT -->
+                            <!-- SEARCH -->
 
-                        <div id="userSearchResult" style="
+                            <input type="text" id="userSearch" class="login-input"
+                                placeholder="Cari berdasarkan nama atau email..." autocomplete="off">
+
+
+                            <!-- SEARCH RESULT -->
+
+                            <div id="userSearchResult" style="
                                 display: none;
                                 margin-top: 8px;
                                 border: 1px solid #ddd;
@@ -317,36 +316,77 @@
                             "></div>
 
 
-                        <!-- SELECTED USERS -->
+                            <!-- SELECTED USERS -->
 
-                        <div id="selectedUsers" style="
+                            <div id="selectedUsers" style="
                                 display: flex;
                                 flex-direction: column;
                                 gap: 8px;
                                 margin-top: 12px;
                             "></div>
 
-                    </div>
+                        </div>
 
-
-                    <!-- ==================================================
-                         EXISTING IMAGES
-                    ================================================== -->
-
-                    <?php
-                    $images = $model['images'] ?? [];
-                    ?>
-
-                    <?php if (!empty($images)) { ?>
+                        <!-- ==================================================
+     TAGS
+================================================== -->
 
                         <div class="mb-lg">
 
-                            <label class="font-semibold block mb-sm">
-                                Gambar Artikel Saat Ini
+                            <label for="tagSearch" class="font-semibold block mb-sm">
+                                Tags
                             </label>
 
 
-                            <div style="
+                            <!-- SEARCH TAG -->
+
+                            <input type="text" id="tagSearch" class="login-input" placeholder="Cari tag..."
+                                autocomplete="off">
+
+
+                            <!-- SEARCH RESULT -->
+
+                            <div id="tagSearchResult" style="
+                            display: none;
+                            margin-top: 8px;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            background: white;
+                            max-height: 220px;
+                            overflow-y: auto;
+                        "></div>
+
+
+                            <!-- SELECTED TAGS -->
+
+                            <div id="selectedTags" style="
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 8px;
+                            margin-top: 12px;
+                        "></div>
+
+                        </div>
+
+
+                        <!-- ==================================================
+                         EXISTING IMAGES
+                    ================================================== -->
+
+                        <?php
+                        $images = $model['images'] ?? [];
+                        ?>
+
+                        <?php if (!empty($images)) { ?>
+
+                            <div class="mb-lg">
+
+                                <label class="font-semibold block mb-sm">
+                                    Gambar Artikel Saat Ini
+                                </label>
+
+
+                                <div style="
     display: grid;
     grid-template-columns:
         repeat(
@@ -356,24 +396,24 @@
     gap: 15px;
 ">
 
-                                <?php foreach ($images as $image) { ?>
+                                    <?php foreach ($images as $image) { ?>
 
-                                    <?php
-                                    $imageId = (int) ($image['id'] ?? 0);
-                                    $imageName = $image['image'] ?? '';
-                                    $caption = $image['caption'] ?? '';
-                                    ?>
+                                        <?php
+                                        $imageId = (int) ($image['id'] ?? 0);
+                                        $imageName = $image['image'] ?? '';
+                                        $caption = $image['caption'] ?? '';
+                                        ?>
 
-                                    <div class="existing-image-card" data-image-card="<?= $imageId ?>" style="
+                                        <div class="existing-image-card" data-image-card="<?= $imageId ?>" style="
                 border: 1px solid #ddd;
                 border-radius: 8px;
                 padding: 10px;
             ">
 
-                                        <!-- IMAGE -->
+                                            <!-- IMAGE -->
 
-                                        <img src="/uploads/articles/<?= htmlspecialchars($imageName) ?>"
-                                            alt="<?= htmlspecialchars($caption) ?>" style="
+                                            <img src="/uploads/articles/<?= htmlspecialchars($imageName) ?>"
+                                                alt="<?= htmlspecialchars($caption) ?>" style="
                     width: 100%;
                     height: 180px;
                     object-fit: cover;
@@ -383,16 +423,16 @@
                 ">
 
 
-                                        <!-- CAPTION -->
+                                            <!-- CAPTION -->
 
-                                        <input type="text" name="existingCaptions[<?= $imageId ?>]"
-                                            class="login-input existing-image-caption" placeholder="Caption gambar..."
-                                            value="<?= htmlspecialchars($caption) ?>">
+                                            <input type="text" name="existingCaptions[<?= $imageId ?>]"
+                                                class="login-input existing-image-caption" placeholder="Caption gambar..."
+                                                value="<?= htmlspecialchars($caption) ?>">
 
 
-                                        <!-- DELETE -->
+                                            <!-- DELETE -->
 
-                                        <label class="existing-image-delete" style="
+                                            <label class="existing-image-delete" style="
                                             display: flex;
                                             align-items: center;
                                             gap: 6px;
@@ -400,64 +440,66 @@
                                             cursor: pointer;
                                         ">
 
-                                            <input type="checkbox" name="deleteImages[]" value="<?= $imageId ?>"
-                                                class="delete-image-checkbox">
+                                                <input type="checkbox" name="deleteImages[]" value="<?= $imageId ?>"
+                                                    class="delete-image-checkbox">
 
-                                            <span>Hapus gambar</span>
+                                                <span>Hapus gambar</span>
 
-                                        </label>
+                                            </label>
 
-                                    </div>
+                                        </div>
 
-                                <?php } ?>
+                                    <?php } ?>
+
+                                </div>
 
                             </div>
 
-                        </div>
-
-                    <?php } ?>
+                        <?php } ?>
 
 
-                    <!-- ==================================================
+                        <!-- ==================================================
                          ADD NEW IMAGES
                     ================================================== -->
 
-                    <div class="mb-lg">
+                        <div class="mb-lg">
 
-                        <label for="images" class="font-semibold block mb-sm">
-                            Tambah Article Images
-                        </label>
-
-
-                        <input type="file" name="images[]" id="images" accept="image/jpeg,image/png,image/webp" multiple
-                            class="login-input">
+                            <label for="images" class="font-semibold block mb-sm">
+                                Tambah Article Images
+                            </label>
 
 
-                        <p class="mt-sm">
-                            Kamu bisa menambahkan lebih dari satu gambar baru.
-                        </p>
-
-                    </div>
+                            <input type="file" name="images[]" id="images" accept="image/jpeg,image/png,image/webp" multiple
+                                class="login-input">
 
 
-                    <!-- ==================================================
+                            <p class="mt-sm">
+                                Kamu bisa menambahkan lebih dari satu gambar baru.
+                            </p>
+
+                        </div>
+
+
+                        <!-- ==================================================
                          NEW IMAGE PREVIEW
                     ================================================== -->
 
-                    <div id="imagePreview" class="mb-lg"></div>
+                        <div id="imagePreview" class="mb-lg"></div>
 
 
-                    <!-- ==================================================
+                        <!-- ==================================================
                          SUBMIT
                     ================================================== -->
 
-                    <button type="submit" class="neo-btn w-full">
-                        Simpan Perubahan
-                    </button>
+                        <button type="submit" class="neo-btn w-full">
+                            Simpan Perubahan
+                        </button>
 
-                </form>
+                    </form>
 
-            </div>
+                </div>
+
+            <?php } ?>
 
         </div>
 
@@ -580,7 +622,7 @@
     */
 
     const currentUserId =
-          <?= (int) ($model['currentUserId'] ?? 0) ?>;
+        <?= (int) ($model['currentUserId'] ?? 0) ?>;
 
 
     /*
@@ -964,6 +1006,383 @@
 
 
         return div.innerHTML;
+
+    }
+
+    /*
+|--------------------------------------------------------------------------
+| MULTI TAG
+|--------------------------------------------------------------------------
+*/
+
+    const tagSearch =
+        document.getElementById('tagSearch');
+
+    const tagSearchResult =
+        document.getElementById('tagSearchResult');
+
+    const selectedTagsContainer =
+        document.getElementById('selectedTags');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TAG YANG SUDAH TERHUBUNG
+    |--------------------------------------------------------------------------
+    */
+
+    const existingTags = <?= json_encode(
+        array_map(
+            function ($tag) {
+                return [
+                    'id' => (int) $tag['tag_id'],
+                    'name' => $tag['name']
+                ];
+            },
+            $model['articleTags'] ?? []
+        ),
+        JSON_UNESCAPED_UNICODE
+    ) ?>;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELECTED TAGS
+    |--------------------------------------------------------------------------
+    */
+
+    const selectedTags = new Map();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOAD TAG LAMA
+    |--------------------------------------------------------------------------
+    */
+
+    existingTags.forEach(tag => {
+
+        const tagId =
+            Number(tag.id);
+
+        selectedTags.set(
+            tagId,
+            tag
+        );
+
+    });
+
+
+    renderSelectedTags();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEARCH TAG
+    |--------------------------------------------------------------------------
+    */
+
+    tagSearch.addEventListener(
+        'input',
+        async function () {
+
+            const keyword =
+                this.value.trim();
+
+
+            if (keyword === '') {
+
+                tagSearchResult.innerHTML = '';
+
+                tagSearchResult.style.display =
+                    'none';
+
+                return;
+
+            }
+
+
+            try {
+
+                const response = await fetch(
+                    `/tag/search?keyword=${encodeURIComponent(keyword)}`
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        'Gagal mencari tag.'
+                    );
+
+                }
+
+
+                const tags =
+                    await response.json();
+
+
+                renderTagSearch(tags);
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                tagSearchResult.innerHTML = `
+                <div style="padding: 12px;">
+                    Gagal mencari tag.
+                </div>
+            `;
+
+
+                tagSearchResult.style.display =
+                    'block';
+
+            }
+
+        }
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER SEARCH RESULT
+    |--------------------------------------------------------------------------
+    */
+
+    function renderTagSearch(tags) {
+
+        tagSearchResult.innerHTML = '';
+
+
+        if (!tags.length) {
+
+            tagSearchResult.innerHTML = `
+            <div style="padding: 12px;">
+                Tag tidak ditemukan.
+            </div>
+        `;
+
+            tagSearchResult.style.display =
+                'block';
+
+            return;
+
+        }
+
+
+        tags.forEach(tag => {
+
+            const tagId =
+                Number(tag.id);
+
+
+            /*
+            | Jangan tampilkan tag
+            | yang sudah dipilih
+            */
+
+            if (selectedTags.has(tagId)) {
+
+                return;
+
+            }
+
+
+            const item =
+                document.createElement('div');
+
+
+            item.style.padding =
+                '10px 12px';
+
+            item.style.cursor =
+                'pointer';
+
+            item.style.borderBottom =
+                '1px solid #eee';
+
+
+            item.innerHTML = `
+
+            <strong>
+                ${escapeHtml(tag.name)}
+            </strong>
+
+        `;
+
+
+            item.addEventListener(
+                'click',
+                function () {
+
+                    addSelectedTag(tag);
+
+                }
+            );
+
+
+            tagSearchResult.appendChild(item);
+
+        });
+
+
+        tagSearchResult.style.display =
+            'block';
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADD SELECTED TAG
+    |--------------------------------------------------------------------------
+    */
+
+    function addSelectedTag(tag) {
+
+        const tagId =
+            Number(tag.id);
+
+
+        if (selectedTags.has(tagId)) {
+
+            return;
+
+        }
+
+
+        selectedTags.set(
+            tagId,
+            tag
+        );
+
+
+        renderSelectedTags();
+
+
+        tagSearch.value = '';
+
+        tagSearchResult.innerHTML = '';
+
+        tagSearchResult.style.display =
+            'none';
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER SELECTED TAGS
+    |--------------------------------------------------------------------------
+    */
+
+    function renderSelectedTags() {
+
+        selectedTagsContainer.innerHTML = '';
+
+
+        if (selectedTags.size === 0) {
+
+            selectedTagsContainer.innerHTML = `
+            <div style="
+                padding: 10px;
+                color: #666;
+                border: 1px dashed #ccc;
+                border-radius: 8px;
+            ">
+                Belum ada tag.
+            </div>
+        `;
+
+            return;
+
+        }
+
+
+        selectedTags.forEach(
+            (tag, tagId) => {
+
+                const wrapper =
+                    document.createElement('div');
+
+
+                wrapper.style.display =
+                    'flex';
+
+                wrapper.style.alignItems =
+                    'center';
+
+                wrapper.style.gap =
+                    '8px';
+
+                wrapper.style.padding =
+                    '6px 10px';
+
+                wrapper.style.border =
+                    '2px solid var(--dark)';
+
+                wrapper.style.borderRadius =
+                    '4px';
+
+                wrapper.style.backgroundColor =
+                    'var(--yellow-light)';
+
+
+                wrapper.innerHTML = `
+
+                <span>
+                    ${escapeHtml(tag.name)}
+                </span>
+
+
+                <button
+                    type="button"
+                    class="neo-btn"
+                    style="
+                        padding: 2px 7px;
+                        width: auto;
+                        font-size: 12px;
+                    "
+                >
+                    ×
+                </button>
+
+
+                <input
+                    type="hidden"
+                    name="selectedTags[]"
+                    value="${tagId}"
+                >
+
+            `;
+
+
+                const removeButton =
+                    wrapper.querySelector('button');
+
+
+                removeButton.addEventListener(
+                    'click',
+                    function () {
+
+                        selectedTags.delete(
+                            tagId
+                        );
+
+                        renderSelectedTags();
+
+                    }
+                );
+
+
+                selectedTagsContainer.appendChild(
+                    wrapper
+                );
+
+            }
+        );
 
     }
 

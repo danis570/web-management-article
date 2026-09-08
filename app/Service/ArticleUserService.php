@@ -83,4 +83,16 @@ class ArticleUserService
         $this->articleUserRepository
             ->deleteByArticleId($articleId);
     }
+
+    public function exists(int $articleId, int $userId): bool
+    {
+        return $this->articleUserRepository->exists($articleId, $userId);
+    }
+
+    public function validateUserCanEdit(int $articleId, int $userId): void
+    {
+        if (!$this->articleUserRepository->exists($articleId, $userId)) {
+            throw new Exception('Article not found.');
+        }
+    }
 }

@@ -74,6 +74,11 @@ class ArticleService
         throw new Exception("You don't have any articles yet.");
     }
 
+    public function getBySlug(string $slug)
+{
+    return $this->articleRepository->getBySlug($slug);
+}
+
     function getById(int $id): array
     {
         $result = $this->articleRepository->getById($id);
@@ -96,6 +101,7 @@ class ArticleService
         throw new Exception("No articles yet.");
     }
 
+
     function getAndUser(): array
     {
         $result = $this->articleRepository->getAndUser();
@@ -105,7 +111,9 @@ class ArticleService
         }
 
         foreach ($result as &$article) {
+
             if (strlen($article['content']) > 25) {
+
                 $article['content'] = substr(
                     $article['content'],
                     0,

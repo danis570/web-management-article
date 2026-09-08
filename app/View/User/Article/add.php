@@ -217,6 +217,35 @@
 
                     </div>
 
+                    <!-- TAG -->
+                    <div class="mb-lg">
+
+                        <label for="tagSearch" class="font-semibold block mb-sm">
+                            Tags
+                        </label>
+
+                        <input type="text" id="tagSearch" class="login-input" placeholder="Cari tag..."
+                            autocomplete="off">
+
+                        <div id="tagSearchResult" style="
+            display: none;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            max-height: 220px;
+            overflow-y: auto;
+        "></div>
+
+                        <div id="selectedTags" style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        "></div>
+
+                    </div>
+
 
                     <!-- ============================== -->
                     <!-- IMAGE -->
@@ -258,7 +287,7 @@
                     <!-- ============================== -->
 
                     <button type="submit" class="neo-btn w-full">
-                        Simpan Artikel
+                        Simpan & Publish Artikel
                     </button>
 
                 </form>
@@ -562,6 +591,233 @@
 
     /*
     |--------------------------------------------------------------------------
+    | MULTI TAG
+    |--------------------------------------------------------------------------
+    */
+
+    const tagSearch = document.getElementById('tagSearch');
+    const tagSearchResult = document.getElementById('tagSearchResult');
+    const selectedTagsContainer =
+        document.getElementById('selectedTags');
+
+
+    // Menyimpan tag yang sudah dipilih
+    const selectedTags = new Map();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEARCH TAG
+    |--------------------------------------------------------------------------
+    */
+
+    tagSearch.addEventListener('input', async function () {
+
+        const keyword = this.value.trim();
+
+        if (keyword === '') {
+
+            tagSearchResult.innerHTML = '';
+            tagSearchResult.style.display = 'none';
+
+            return;
+        }
+
+
+        try {
+
+            const response = await fetch(
+                `/tag/search?keyword=${encodeURIComponent(keyword)}`
+            );
+
+            if (!response.ok) {
+                throw new Error('Gagal mencari tag.');
+            }
+
+            const tags = await response.json();
+
+            renderTagSearch(tags);
+
+        } catch (error) {
+
+            console.error(error);
+
+            tagSearchResult.innerHTML = `
+            <div style="padding: 12px;">
+                Gagal mencari tag.
+            </div>
+        `;
+
+            tagSearchResult.style.display = 'block';
+
+        }
+
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER SEARCH RESULT
+    |--------------------------------------------------------------------------
+    */
+
+    function renderTagSearch(tags) {
+
+        tagSearchResult.innerHTML = '';
+
+        if (!tags.length) {
+
+            tagSearchResult.innerHTML = `
+            <div style="padding: 12px;">
+                Tag tidak ditemukan.
+            </div>
+        `;
+
+            tagSearchResult.style.display = 'block';
+
+            return;
+        }
+
+
+        tags.forEach(tag => {
+
+            const tagId = Number(tag.id);
+
+
+            // Jangan tampilkan tag yang sudah dipilih
+            if (selectedTags.has(tagId)) {
+                return;
+            }
+
+
+            const item = document.createElement('div');
+
+            item.style.padding = '10px 12px';
+            item.style.cursor = 'pointer';
+            item.style.borderBottom = '1px solid #eee';
+
+
+            item.innerHTML = `
+            <strong>
+                ${escapeHtml(tag.name)}
+            </strong>
+        `;
+
+
+            item.addEventListener('click', function () {
+
+                addSelectedTag(tag);
+
+            });
+
+
+            tagSearchResult.appendChild(item);
+
+        });
+
+
+        tagSearchResult.style.display = 'block';
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADD SELECTED TAG
+    |--------------------------------------------------------------------------
+    */
+
+    function addSelectedTag(tag) {
+
+        const tagId = Number(tag.id);
+
+        if (selectedTags.has(tagId)) {
+            return;
+        }
+
+
+        selectedTags.set(tagId, tag);
+
+        renderSelectedTags();
+
+
+        tagSearch.value = '';
+        tagSearchResult.innerHTML = '';
+        tagSearchResult.style.display = 'none';
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER SELECTED TAGS
+    |--------------------------------------------------------------------------
+    */
+
+    function renderSelectedTags() {
+
+        selectedTagsContainer.innerHTML = '';
+
+
+        selectedTags.forEach((tag, tagId) => {
+
+            const wrapper = document.createElement('div');
+
+            wrapper.style.display = 'flex';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.gap = '8px';
+            wrapper.style.padding = '6px 10px';
+            wrapper.style.border = '2px solid var(--dark)';
+            wrapper.style.borderRadius = '4px';
+            wrapper.style.backgroundColor = 'var(--yellow-light)';
+
+
+            wrapper.innerHTML = `
+            <span>
+                ${escapeHtml(tag.name)}
+            </span>
+
+            <button
+                type="button"
+                class="neo-btn"
+                style="
+                    padding: 2px 7px;
+                    width: auto;
+                    font-size: 12px;
+                "
+            >
+                ×
+            </button>
+
+            <input
+                type="hidden"
+                name="selectedTags[]"
+                value="${tagId}"
+            >
+        `;
+
+
+            const removeButton =
+                wrapper.querySelector('button');
+
+
+            removeButton.addEventListener('click', function () {
+
+                selectedTags.delete(tagId);
+
+                renderSelectedTags();
+
+            });
+
+
+            selectedTagsContainer.appendChild(wrapper);
+
+        });
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | ESCAPE HTML
     |--------------------------------------------------------------------------
     */
@@ -664,6 +920,7 @@
                     </p>
 
                     <input
+                        class="login-input existing-image-caption"
                         type="text"
                         name="captions[]"
                         placeholder="Caption gambar..."
