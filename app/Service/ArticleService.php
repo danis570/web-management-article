@@ -27,7 +27,7 @@ class ArticleService
         $article->title = $request->title;
         $article->slug = $this->createSlug($request->title);
         $article->content = $request->content;
-        $article->status = 'draft';
+        $article->status = 'published';
 
         $result = $this->articleRepository->save($article);
 
@@ -63,6 +63,17 @@ class ArticleService
         $this->articleRepository->deleteById($id);
     }
 
+    public function getByTag(string $tagSlug): array
+    {
+        $tagSlug = trim($tagSlug);
+
+        if ($tagSlug === '') {
+            throw new Exception('Invalid tag.');
+        }
+
+        return $this->articleRepository->getByTag($tagSlug);
+    }
+
     function getByUserId(int $userId): array
     {
         $result = $this->articleRepository->getByUserId($userId);
@@ -75,9 +86,9 @@ class ArticleService
     }
 
     public function getBySlug(string $slug)
-{
-    return $this->articleRepository->getBySlug($slug);
-}
+    {
+        return $this->articleRepository->getBySlug($slug);
+    }
 
     function getById(int $id): array
     {

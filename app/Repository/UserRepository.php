@@ -17,30 +17,47 @@ class UserRepository
 
     public function save(User $user): User
     {
-        $stmt = $this->pdo->prepare("INSERT INTO users
-        (id, name, role, position, period, img, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->pdo->prepare("
+            INSERT INTO users
+            (role, email, password)
+            VALUES (?, ?, ?)
+        ");
+
         $stmt->execute([
-            $user->id,
-            $user->name,
             $user->role->value,
-            $user->position,
-            $user->period,
-            $user->img,
             $user->email,
             $user->password
         ]);
+
+        $user->id = (int) $this->pdo->lastInsertId();
 
         return $user;
     }
 
     public function getAll(): array
     {
-        $stmt = $this->pdo->query("SELECT * FROM users");
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->query("
+            SELECT
+                u.id,
+                u.role,
+                u.email,
+                u.password,
 
-        return $result;
+                p.name,
+                p.position,
+                p.period,
+                p.img
+
+            FROM users u
+
+            JOIN profiles p
+                ON p.user_id = u.id
+
+            ORDER BY p.name ASC
+        ");
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
 
     public function search(
         string $keyword,
@@ -48,49 +65,89 @@ class UserRepository
         int $limit = 10
     ): array {
         $stmt = $this->pdo->prepare("
-        SELECT id, name, email, img
-        FROM users
-        WHERE id != ?
-          AND role != 'admin'
-          AND (
-              name LIKE ?
-              OR email LIKE ?
-          )
-        ORDER BY name ASC
-        LIMIT ?
-    ");
+            SELECT
+                u.id,
+                p.name,
+                u.email,
+                p.img
+
+            FROM users u
+
+            JOIN profiles p
+                ON p.user_id = u.id
+
+            WHERE
+                u.id != ?
+                AND u.role != 'admin'
+                AND (
+                    p.name LIKE ?
+                    OR u.email LIKE ?
+                )
+
+            ORDER BY p.name ASC
+
+            LIMIT ?
+        ");
 
         $search = '%' . $keyword . '%';
 
-        $stmt->bindValue(1, $excludeUserId, PDO::PARAM_INT);
-        $stmt->bindValue(2, $search, PDO::PARAM_STR);
-        $stmt->bindValue(3, $search, PDO::PARAM_STR);
-        $stmt->bindValue(4, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(
+            1,
+            $excludeUserId,
+            PDO::PARAM_INT
+        );
+
+        $stmt->bindValue(
+            2,
+            $search,
+            PDO::PARAM_STR
+        );
+
+        $stmt->bindValue(
+            3,
+            $search,
+            PDO::PARAM_STR
+        );
+
+        $stmt->bindValue(
+            4,
+            $limit,
+            PDO::PARAM_INT
+        );
 
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_CLASS, User::class);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-
 
     public function findByEmail(string $email): ?User
     {
-        $stmt = $this->pdo->prepare("SELECT id, name, role, position, period, img, email, password FROM users WHERE email=?");
+        $stmt = $this->pdo->prepare("
+            SELECT
+                id,
+                role,
+                email,
+                password
+
+            FROM users
+
+            WHERE email = ?
+
+            LIMIT 1
+        ");
+
         $stmt->execute([$email]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$result) {
+        if ($result === false) {
             return null;
         }
+
         $user = new User();
-        $user->id = $result['id'];
-        $user->name = $result['name'];
+
+        $user->id = (int) $result['id'];
         $user->role = UserRole::from($result['role']);
-        $user->position = $result['position'];
-        $user->period = $result['period'];
-        $user->img = $result['img'];
         $user->email = $result['email'];
         $user->password = $result['password'];
 
@@ -99,6 +156,8 @@ class UserRepository
 
     public function deleteAll(): int|false
     {
-        return $this->pdo->exec("DELETE FROM users");
+        return $this->pdo->exec("
+            DELETE FROM users
+        ");
     }
 }

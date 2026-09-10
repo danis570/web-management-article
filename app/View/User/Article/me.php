@@ -1,6 +1,17 @@
 <section class="hero">
     <div class="container">
         <div class="hero-content">
+            <?php if (isset($_SESSION['flash_message'])) { ?>
+                <div class="neo-box bg-success mb-md"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background-color: transparent; color: --var(dark); border: 2px solid var(--dark); box-shadow: 4px 4px 0px var(--dark); font-weight: bold; border-radius: 4px;">
+                    <span>
+                        <?= $_SESSION['flash_message']; ?>
+                    </span>
+                    <button onclick="this.parentElement.remove()"
+                        style="background: none; border: none; color: --var(--dark); font-size: 1.2rem; cursor: pointer; font-weight: bold;">&times;</button>
+                </div>
+                <?php unset($_SESSION['flash_message']);
+            } ?>
             <div class="hero-text">
                 <div class="article-header" style="display: flex; justify-content: space-between; align-items: center;">
 
@@ -169,6 +180,14 @@
 
 
 <style>
+    #article-list {
+        row-gap: 1.5rem !important;
+    }
+
+    #article-list .article-card {
+        margin-bottom: 1.5rem;
+    }
+
     /* =========================================
        ARTICLE MANAGEMENT CARD
     ========================================= */

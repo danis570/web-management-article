@@ -9,4 +9,8 @@ class Comment
     public ?int $parentId = null;
     public int $articleId;
     public int $userId;
+    public int $likeCount = 0;
+    public ?string $createdAt = null;
+    public ?string $updatedAt = null;
+    public ?string $deletedAt = null;
 }

@@ -9,11 +9,24 @@
                 <div class="article-header" style="display: flex; justify-content: space-between; align-items: center;">
 
                     <h3>
-                        Semua
-                        <span class="highlight highlight-yellow">
+                        <span id="article-title-prefix">Semua</span>
+                        <span class="highlight highlight-yellow" id="article-title">
                             <?= htmlspecialchars($model['title'] ?? 'Artikel') ?>
                         </span>
                     </h3>
+                    <script>
+                        const hash = window.location.hash;
+
+                        const prefix = document.getElementById('article-title-prefix');
+                        const title = document.getElementById('article-title');
+
+                        if (hash) {
+                            const tagName = decodeURIComponent(hash.substring(1));
+
+                            prefix.textContent = 'Article';
+                            title.textContent = `#${tagName}`;
+                        }
+                    </script>
 
                     <div class="search-container" style="display: flex; align-items: center; gap: 1rem;">
 
@@ -323,55 +336,404 @@
         const searchInput =
             document.getElementById('article-search');
 
-        const articles =
-            document.querySelectorAll('.article-card');
+        const articleList =
+            document.getElementById('article-list');
 
         const noResult =
             document.getElementById('no-result');
 
+        const titleElement =
+            document.getElementById('article-page-title');
 
-        if (!searchInput || articles.length === 0) {
+
+        if (!articleList) {
             return;
         }
 
 
-        searchInput.addEventListener('input', function () {
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan artikel default
+        |--------------------------------------------------------------------------
+        */
 
-            const keyword =
-                this.value.toLowerCase().trim();
+        const defaultArticleList =
+            articleList.innerHTML;
 
-            let found = false;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Escape HTML
+        |--------------------------------------------------------------------------
+        */
+
+        function escapeHtml(value) {
+
+            const div = document.createElement('div');
+
+            div.textContent = value ?? '';
+
+            return div.innerHTML;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Render artikel
+        |--------------------------------------------------------------------------
+        */
+
+        function renderArticles(articles) {
+
+            articleList.innerHTML = '';
+
+            if (!articles || articles.length === 0) {
+
+                articleList.innerHTML = `
+                <div class="text-center">
+                    <p>Artikel dengan tag ini tidak ditemukan.</p>
+                </div>
+            `;
+
+                if (noResult) {
+                    noResult.style.display = 'none';
+                }
+
+                return;
+            }
 
 
             articles.forEach(article => {
 
-                const fullText =
-                    article.textContent.toLowerCase();
+                const articleElement =
+                    document.createElement('a');
+
+                articleElement.href =
+                    `/article/${encodeURIComponent(article.slug)}`;
+
+                articleElement.className =
+                    'neo-card article-card';
 
 
-                if (fullText.includes(keyword)) {
+                let imageHtml = '';
 
-                    article.classList.remove('is-hidden');
+                if (article.image) {
 
-                    found = true;
-
-                } else {
-
-                    article.classList.add('is-hidden');
-
+                    imageHtml = `
+                    <div class="article-image">
+                        <img
+                            src="/uploads/articles/${escapeHtml(article.image)}"
+                            alt="${escapeHtml(article.title)}"
+                            loading="lazy"
+                        >
+                    </div>
+                `;
                 }
+
+
+                const author =
+                    article.authors ?? 'Unknown Author';
+
+
+                let dateHtml = '';
+
+                if (article.created_at) {
+
+                    const date =
+                        new Date(article.created_at);
+
+                    dateHtml = `
+                    <span class="article-date">
+                        ${date.toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    })}
+                    </span>
+                `;
+                }
+
+
+                articleElement.innerHTML = `
+
+                ${imageHtml}
+
+                <div class="article-header-box">
+
+                    <h4 class="article-title">
+                        ${escapeHtml(article.title)}
+                    </h4>
+
+                </div>
+
+
+                <div class="article-author-info">
+
+                    <span class="article-author-name">
+                        ${escapeHtml(author)}
+                    </span>
+
+                    ${dateHtml}
+
+                </div>
+
+            `;
+
+
+                articleList.appendChild(articleElement);
 
             });
 
 
             if (noResult) {
+                noResult.style.display = 'none';
+            }
+        }
 
-                noResult.style.display =
-                    found ? 'none' : 'block';
 
+        /*
+        |--------------------------------------------------------------------------
+        | Load artikel berdasarkan tag
+        |--------------------------------------------------------------------------
+        */
+
+        async function loadTag(tagSlug) {
+
+            try {
+
+                articleList.innerHTML = `
+                <div class="text-center">
+                    <p>Memuat artikel...</p>
+                </div>
+            `;
+
+
+                const response =
+                    await fetch(
+                        `/article/tag?slug=${encodeURIComponent(tagSlug)}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success) {
+
+                    throw new Error(
+                        data.message || 'Gagal mengambil artikel.'
+                    );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Ubah judul
+                |--------------------------------------------------------------------------
+                */
+
+                if (titleElement) {
+
+                    titleElement.textContent =
+                        data.tag.name;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Tampilkan artikel
+                |--------------------------------------------------------------------------
+                */
+
+                renderArticles(data.articles);
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                articleList.innerHTML = `
+                <div class="text-center">
+                    <p>
+                        ${escapeHtml(error.message)}
+                    </p>
+                </div>
+            `;
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reset ke semua artikel
+        |--------------------------------------------------------------------------
+        */
+
+        function loadAllArticles() {
+
+            articleList.innerHTML =
+                defaultArticleList;
+
+
+            if (titleElement) {
+
+                titleElement.textContent =
+                    <?= json_encode($model['title'] ?? 'Artikel') ?>;
             }
 
-        });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Aktifkan kembali search
+            |--------------------------------------------------------------------------
+            */
+
+            if (searchInput) {
+
+                searchInput.value = '';
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cek hash URL
+        |--------------------------------------------------------------------------
+        */
+
+        function handleHash() {
+
+            const hash =
+                window.location.hash;
+
+
+            /*
+            | Tidak ada tag
+            */
+
+            if (!hash) {
+
+                loadAllArticles();
+
+                return;
+            }
+
+
+            /*
+            | Buang #
+            */
+
+            const tagSlug =
+                decodeURIComponent(
+                    hash.substring(1)
+                ).trim();
+
+
+            if (!tagSlug) {
+
+                loadAllArticles();
+
+                return;
+            }
+
+
+            /*
+            | Ambil artikel berdasarkan tag
+            */
+
+            loadTag(tagSlug);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Search artikel
+        |--------------------------------------------------------------------------
+        */
+
+        function setupSearch() {
+
+            if (!searchInput) {
+                return;
+            }
+
+
+            searchInput.addEventListener(
+                'input',
+                function () {
+
+                    const keyword =
+                        this.value.toLowerCase().trim();
+
+
+                    const articles =
+                        articleList.querySelectorAll(
+                            '.article-card'
+                        );
+
+
+                    let found = false;
+
+
+                    articles.forEach(article => {
+
+                        const fullText =
+                            article.textContent.toLowerCase();
+
+
+                        if (
+                            fullText.includes(keyword)
+                        ) {
+
+                            article.classList.remove(
+                                'is-hidden'
+                            );
+
+                            found = true;
+
+                        } else {
+
+                            article.classList.add(
+                                'is-hidden'
+                            );
+                        }
+
+                    });
+
+
+                    if (noResult) {
+
+                        noResult.style.display =
+                            found ? 'none' : 'block';
+                    }
+
+                }
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Jalankan
+        |--------------------------------------------------------------------------
+        */
+
+        setupSearch();
+
+        handleHash();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Kalau hash berubah
+        |--------------------------------------------------------------------------
+        */
+
+        window.addEventListener(
+            'hashchange',
+            handleHash
+        );
 
     });
 

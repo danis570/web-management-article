@@ -602,10 +602,10 @@
             function ($user) {
 
         return [
-            'id' => (int) $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'img' => $user->img ?? null
+            'id' => (int) $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'img' => $user['img'] ?? null
         ];
 
     },

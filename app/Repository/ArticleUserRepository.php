@@ -65,19 +65,28 @@ class ArticleUserRepository
         $stmt = $this->pdo->prepare("
         SELECT
             u.id,
-            u.name,
+            u.role,
             u.email,
-            u.img
+            p.name,
+            p.position,
+            p.period,
+            p.img
         FROM article_user au
+
         JOIN users u
             ON u.id = au.user_id
+
+        JOIN profiles p
+            ON p.user_id = u.id
+
         WHERE au.article_id = ?
-        ORDER BY u.name ASC
+
+        ORDER BY p.name ASC
     ");
 
         $stmt->execute([$articleId]);
 
-        return $stmt->fetchAll(PDO::FETCH_CLASS, User::class);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function getByArticleId(int $articleId): array

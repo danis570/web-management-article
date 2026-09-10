@@ -15,25 +15,29 @@ class UserController
     public function __construct()
     {
         $pdo = Database::getConnection();
+
         $userRepository = new UserRepository($pdo);
-        $this->userService = new UserService($userRepository);
+
+        $this->userService = new UserService(
+            $userRepository
+        );
     }
 
     function users()
     {
         try {
-            $user = $this->userService->getAll();
+            $users = $this->userService->getAll();
+
             View::renderAdmin('/User/users', [
                 'title' => 'Users',
                 'current' => 'users',
-                'user' => $user
+                'user' => $users
             ]);
         } catch (Exception $e) {
-            $user = $this->userService->getAll();
             View::renderAdmin('/User/users', [
                 'title' => 'Users',
                 'current' => 'users',
-                'user' => $user,
+                'user' => [],
                 'error' => $e->getMessage()
             ]);
         }
@@ -57,6 +61,4 @@ class UserController
         echo json_encode($users);
         exit();
     }
-
-
 }

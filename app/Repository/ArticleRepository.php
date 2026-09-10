@@ -51,50 +51,190 @@ class ArticleRepository
 
         return $article;
     }
-
     public function getBySlug(string $slug): array|false
     {
-        $stmt = $this->pdo->prepare(" SELECT a.id, a.title, a.slug, a.content, a.view_count, a.status, a.created_at, a.updated_at, GROUP_CONCAT( DISTINCT u.name ORDER BY u.name ASC SEPARATOR ', ' ) AS authors, GROUP_CONCAT( DISTINCT u.img ORDER BY u.name ASC SEPARATOR ',' ) AS author_images, GROUP_CONCAT( DISTINCT t.name ORDER BY t.name ASC SEPARATOR ',' ) AS tags FROM articles a JOIN article_user au ON au.article_id = a.id JOIN users u ON u.id = au.user_id LEFT JOIN article_tag at ON at.article_id = a.id LEFT JOIN tags t ON t.id = at.tag_id WHERE a.slug = ? AND a.deleted_at IS NULL GROUP BY a.id LIMIT 1 ");
+        $stmt = $this->pdo->prepare("
+        SELECT
+            a.id,
+            a.title,
+            a.slug,
+            a.content,
+            a.view_count,
+            a.status,
+            a.created_at,
+            a.updated_at,
+
+            GROUP_CONCAT(
+                DISTINCT p.name
+                ORDER BY p.name ASC
+                SEPARATOR ', '
+            ) AS authors,
+
+            GROUP_CONCAT(
+                DISTINCT p.img
+                ORDER BY p.name ASC
+                SEPARATOR ','
+            ) AS author_images
+
+        FROM articles a
+
+        JOIN article_user au
+            ON au.article_id = a.id
+
+        JOIN users u
+            ON u.id = au.user_id
+
+        JOIN profiles p
+            ON p.user_id = u.id
+
+        WHERE
+            a.slug = ?
+            AND a.deleted_at IS NULL
+
+        GROUP BY a.id
+
+        LIMIT 1
+    ");
+
         $stmt->execute([$slug]);
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ?: false;
+
+        if (!$result) {
+            return false;
+        }
+
+        // Ambil tags artikel
+        $tagStmt = $this->pdo->prepare("
+        SELECT
+            t.id,
+            t.name,
+            t.slug
+
+        FROM article_tag at
+
+        JOIN tags t
+            ON t.id = at.tag_id
+
+        WHERE at.article_id = ?
+
+        ORDER BY t.name ASC
+    ");
+
+        $tagStmt->execute([
+            (int) $result['id']
+        ]);
+
+        $result['tags'] = $tagStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $result;
     }
-    
+
+    public function getByTag(string $tagSlug): array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT
+            a.id,
+            a.title,
+            a.slug,
+            a.content,
+            a.view_count,
+            a.status,
+            a.created_at,
+            a.updated_at,
+
+            GROUP_CONCAT(
+                DISTINCT p.name
+                ORDER BY p.name ASC
+                SEPARATOR ', '
+            ) AS authors,
+
+            GROUP_CONCAT(
+                DISTINCT p.img
+                ORDER BY p.name ASC
+                SEPARATOR ','
+            ) AS author_images
+
+        FROM articles a
+
+        JOIN article_tag at
+            ON at.article_id = a.id
+
+        JOIN tags t
+            ON t.id = at.tag_id
+
+        JOIN article_user au
+            ON au.article_id = a.id
+
+        JOIN users u
+            ON u.id = au.user_id
+
+        JOIN profiles p
+            ON p.user_id = u.id
+
+        WHERE
+            t.slug = ?
+            AND a.status = 'published'
+            AND a.deleted_at IS NULL
+
+        GROUP BY a.id
+
+        ORDER BY a.created_at DESC
+    ");
+
+        $stmt->execute([$tagSlug]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getByUserId(int $userId): array|false
     {
         $sql = "
-        SELECT 
-            a.*, 
+        SELECT
+            a.*,
+
             GROUP_CONCAT(
-                DISTINCT CASE WHEN u.id != ? THEN u.name END 
-                ORDER BY u.name ASC 
+                DISTINCT CASE
+                    WHEN u.id != ? THEN p.name
+                END
+                ORDER BY p.name ASC
                 SEPARATOR ', '
-            ) AS connected_users 
+            ) AS connected_users
+
         FROM articles a
-        -- Filter artikel yang terhubung dengan user yang sedang login
-        JOIN article_user au_current 
+
+        -- Memastikan artikel terhubung
+        -- dengan user yang sedang login
+        JOIN article_user au_current
             ON au_current.article_id = a.id
-        -- Gabungkan kembali untuk mendapatkan user lain (kontributor)
-        JOIN article_user au 
+
+        -- Mengambil seluruh user yang terhubung
+        -- dengan artikel tersebut
+        JOIN article_user au
             ON au.article_id = a.id
-        -- Ambil data nama lengkap user
-        JOIN users u 
-            ON u.id = au.user_id 
-        WHERE 
-            au_current.user_id = ? 
-            AND a.deleted_at IS NULL 
-        GROUP BY 
-            a.id 
-        ORDER BY 
-            a.created_at DESC
+
+        -- Account user
+        JOIN users u
+            ON u.id = au.user_id
+
+        -- Profile user
+        JOIN profiles p
+            ON p.user_id = u.id
+
+        WHERE
+            au_current.user_id = ?
+            AND a.deleted_at IS NULL
+
+        GROUP BY a.id
+
+        ORDER BY a.created_at DESC
     ";
 
         $stmt = $this->pdo->prepare($sql);
 
-        // Mengeksekusi parameter berurutan sesuai tanda tanya (?) pada query SQL
         $stmt->execute([
-            $userId, // Mengisi tanda tanya ke-1: Kondisi pengecualian nama (CASE WHEN u.id != ?)
-            $userId  // Mengisi tanda tanya ke-2: Filter artikel user login (au_current.user_id = ?)
+            $userId,
+            $userId
         ]);
 
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -137,7 +277,7 @@ class ArticleRepository
 
 
 
-    function getAndUser(): array
+    public function getAndUser(): array
     {
         $stmt = $this->pdo->query("
         SELECT
@@ -151,8 +291,8 @@ class ArticleRepository
             a.updated_at,
 
             GROUP_CONCAT(
-                DISTINCT u.name
-                ORDER BY u.name ASC
+                DISTINCT p.name
+                ORDER BY p.name ASC
                 SEPARATOR ', '
             ) AS authors,
 
@@ -172,7 +312,12 @@ class ArticleRepository
         JOIN users u
             ON u.id = au.user_id
 
-        WHERE a.deleted_at IS NULL
+        JOIN profiles p
+            ON p.user_id = u.id
+
+        WHERE
+            a.status = 'published'
+            AND a.deleted_at IS NULL
 
         GROUP BY a.id
 

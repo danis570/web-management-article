@@ -10,12 +10,14 @@ use app\Repository\ArticleImageRepository;
 use app\Repository\ArticleRepository;
 use app\Repository\ArticleTagRepository;
 use app\Repository\ArticleUserRepository;
+use app\Repository\CommentRepository;
 use app\Repository\TagRepository;
 use app\Repository\UserRepository;
 use app\Service\ArticleImageService;
 use app\Service\ArticleService;
 use app\Service\ArticleTagService;
 use app\Service\ArticleUserService;
+use app\Service\CommentService;
 use app\Service\TagService;
 use app\Service\UserService;
 use Exception;
@@ -31,6 +33,7 @@ class ArticleController
 
     private UserService $userService;
 
+    private CommentService $commentService;
     public function __construct()
     {
         $pdo = Database::getConnection();
@@ -52,6 +55,14 @@ class ArticleController
         $articleImageRepository = new ArticleImageRepository($pdo);
         $this->articleImageService = new ArticleImageService(
             $articleImageRepository
+        );
+
+        $tagRepository = new TagRepository($pdo);
+
+        $commentRepository = new CommentRepository($pdo);
+
+        $this->commentService = new CommentService(
+            $commentRepository
         );
 
         $userRepository = new UserRepository($pdo);
@@ -115,7 +126,6 @@ class ArticleController
 
         View::renderUser('/Article/me', $data);
     }
-
     public function detail(array $params): void
     {
         $slug = $params['slug'] ?? '';
@@ -135,7 +145,17 @@ class ArticleController
 
             $data['title'] = $article['title'];
             $data['article'] = $article;
-            $data['images'] = $this->articleImageService->getByArticleId($article['id']);
+
+            $data['images'] = $this->articleImageService
+                ->getByArticleId($article['id']);
+
+            $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+            $data['comments'] = $this->commentService
+                ->getByArticleId(
+                    $article['id'],
+                    $userId
+                );
 
         } catch (Exception $e) {
             $data['error'] = $e->getMessage();
@@ -148,6 +168,87 @@ class ArticleController
         }
     }
 
+    public function tag(array $params): void
+    {
+        $tagSlug = $params['slug'] ?? '';
+
+        $data = [
+            'title' => 'Artikel',
+            'current' => 'article',
+            'tag' => null,
+            'articles' => [],
+        ];
+
+        try {
+
+            $tag = $this->tagService->getBySlug($tagSlug);
+
+            if (!$tag) {
+                throw new Exception('Tag not found.');
+            }
+
+            $data['tag'] = $tag;
+
+            $data['articles'] =
+                $this->articleService->getByTag(
+                    $tag->slug
+                );
+
+        } catch (Exception $e) {
+
+            $data['error'] = $e->getMessage();
+        }
+
+        View::renderUser(
+            '/Article/tag',
+            $data
+        );
+    }
+
+    public function getByTag(): void
+    {
+        header('Content-Type: application/json');
+
+        $tagSlug = trim($_GET['slug'] ?? '');
+
+        if ($tagSlug === '') {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Tag slug is required.'
+            ]);
+            return;
+        }
+
+        try {
+            $tag = $this->tagService->getBySlug($tagSlug);
+
+            if (!$tag) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Tag not found.'
+                ]);
+                return;
+            }
+
+            $articles = $this->articleService->getByTag($tag->slug);
+
+            echo json_encode([
+                'success' => true,
+                'tag' => [
+                    'name' => $tag->name,
+                    'slug' => $tag->slug,
+                ],
+                'articles' => $articles
+            ]);
+
+        } catch (Exception $e) {
+
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 
     function add()
     {
@@ -246,7 +347,7 @@ class ArticleController
 
             $_SESSION['flash_message'] = 'Success add new article';
 
-            header('Location: /article');
+            header('Location: /me/article');
             exit();
 
         } catch (Exception $e) {
@@ -486,7 +587,7 @@ class ArticleController
             $_SESSION['flash_message'] =
                 'Success edit article';
 
-            header('Location: /article');
+            header('Location: /me/article');
             exit();
 
         } catch (Exception $e) {
