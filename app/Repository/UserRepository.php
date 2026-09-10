@@ -64,58 +64,46 @@ class UserRepository
         int $excludeUserId,
         int $limit = 10
     ): array {
+        $keyword = trim($keyword);
+
+        if ($keyword === '') {
+            return [];
+        }
+
+        $limit = max(1, min($limit, 50));
+
         $stmt = $this->pdo->prepare("
-            SELECT
-                u.id,
-                p.name,
-                u.email,
-                p.img
+        SELECT
+            u.id,
+            p.name,
+            u.email,
+            p.img
 
-            FROM users u
+        FROM users u
 
-            JOIN profiles p
-                ON p.user_id = u.id
+        JOIN profiles p
+            ON p.user_id = u.id
 
-            WHERE
-                u.id != ?
-                AND u.role != 'admin'
-                AND (
-                    p.name LIKE ?
-                    OR u.email LIKE ?
-                )
+        WHERE
+            u.id != ?
+            AND u.role != 'admin'
+            AND (
+                p.name LIKE ?
+                OR u.email LIKE ?
+            )
 
-            ORDER BY p.name ASC
+        ORDER BY p.name ASC
 
-            LIMIT ?
-        ");
+        LIMIT $limit
+    ");
 
         $search = '%' . $keyword . '%';
 
-        $stmt->bindValue(
-            1,
+        $stmt->execute([
             $excludeUserId,
-            PDO::PARAM_INT
-        );
-
-        $stmt->bindValue(
-            2,
             $search,
-            PDO::PARAM_STR
-        );
-
-        $stmt->bindValue(
-            3,
-            $search,
-            PDO::PARAM_STR
-        );
-
-        $stmt->bindValue(
-            4,
-            $limit,
-            PDO::PARAM_INT
-        );
-
-        $stmt->execute();
+            $search
+        ]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

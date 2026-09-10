@@ -17,11 +17,18 @@ class ArticleRepository
     function save(Article $article): Article
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO articles(title, slug, content, status)
-            VALUES (?, ?, ?, ?)
-        ");
+        INSERT INTO articles(
+            owner_id,
+            title,
+            slug,
+            content,
+            status
+        )
+        VALUES (?, ?, ?, ?, ?)
+    ");
 
         $stmt->execute([
+            $article->ownerId,
             $article->title,
             $article->slug,
             $article->content,
@@ -36,10 +43,14 @@ class ArticleRepository
     function update(Article $article): Article
     {
         $stmt = $this->pdo->prepare("
-            UPDATE articles
-            SET title = ?, slug = ?, content = ?, status = ?
-            WHERE id = ?
-        ");
+        UPDATE articles
+        SET
+            title = ?,
+            slug = ?,
+            content = ?,
+            status = ?
+        WHERE id = ?
+    ");
 
         $stmt->execute([
             $article->title,
@@ -56,10 +67,12 @@ class ArticleRepository
         $stmt = $this->pdo->prepare("
         SELECT
             a.id,
+            a.owner_id,
             a.title,
             a.slug,
             a.content,
             a.view_count,
+            a.like_count,
             a.status,
             a.created_at,
             a.updated_at,
@@ -135,6 +148,7 @@ class ArticleRepository
         $stmt = $this->pdo->prepare("
         SELECT
             a.id,
+            a.owner_id,
             a.title,
             a.slug,
             a.content,
@@ -187,15 +201,20 @@ class ArticleRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
     public function getByUserId(int $userId): array|false
     {
         $sql = "
         SELECT
             a.*,
 
+            -- Nama pemilik artikel
+            owner_profile.name AS owner_name,
+
+            -- Nama kolaborator, kecuali owner
             GROUP_CONCAT(
                 DISTINCT CASE
-                    WHEN u.id != ? THEN p.name
+                    WHEN u.id != a.owner_id THEN p.name
                 END
                 ORDER BY p.name ASC
                 SEPARATOR ', '
@@ -221,6 +240,10 @@ class ArticleRepository
         JOIN profiles p
             ON p.user_id = u.id
 
+        -- Profile owner artikel
+        LEFT JOIN profiles owner_profile
+            ON owner_profile.user_id = a.owner_id
+
         WHERE
             au_current.user_id = ?
             AND a.deleted_at IS NULL
@@ -233,7 +256,6 @@ class ArticleRepository
         $stmt = $this->pdo->prepare($sql);
 
         $stmt->execute([
-            $userId,
             $userId
         ]);
 
@@ -242,16 +264,23 @@ class ArticleRepository
         return !empty($result) ? $result : false;
     }
 
-
-
     function getById(int $id): array|false
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, title, slug, content, view_count, status,
-                   created_at, updated_at, deleted_at
-            FROM articles
-            WHERE id = ?
-        ");
+        SELECT
+            id,
+            owner_id,
+            title,
+            slug,
+            content,
+            view_count,
+            status,
+            created_at,
+            updated_at,
+            deleted_at
+        FROM articles
+        WHERE id = ?
+    ");
 
         $stmt->execute([$id]);
 
@@ -263,25 +292,33 @@ class ArticleRepository
     function getAll(): array|false
     {
         $stmt = $this->pdo->query("
-            SELECT id, title, slug, content, view_count, status,
-                   created_at, updated_at, deleted_at
-            FROM articles
-            WHERE deleted_at IS NULL
-            ORDER BY created_at DESC
-        ");
+        SELECT
+            id,
+            owner_id,
+            title,
+            slug,
+            content,
+            view_count,
+            status,
+            created_at,
+            updated_at,
+            deleted_at
+        FROM articles
+        WHERE deleted_at IS NULL
+        ORDER BY created_at DESC
+    ");
 
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return $result ?: false;
     }
 
-
-
     public function getAndUser(): array
     {
         $stmt = $this->pdo->query("
         SELECT
             a.id,
+            a.owner_id,
             a.title,
             a.slug,
             a.content,
@@ -338,6 +375,28 @@ class ArticleRepository
         $stmt->execute([$id]);
     }
 
+    public function incrementLikeCount(int $articleId): void
+    {
+        $stmt = $this->pdo->prepare("
+        UPDATE articles
+        SET like_count = like_count + 1
+        WHERE id = ?
+    ");
+
+        $stmt->execute([$articleId]);
+    }
+
+    public function decrementLikeCount(int $articleId): void
+    {
+        $stmt = $this->pdo->prepare("
+        UPDATE articles
+        SET like_count = GREATEST(like_count - 1, 0)
+        WHERE id = ?
+    ");
+
+        $stmt->execute([$articleId]);
+    }
+
     function deleteById(int $id): void
     {
         $stmt = $this->pdo->prepare("
@@ -356,11 +415,20 @@ class ArticleRepository
     function findById(int $id): Article|false
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, title, slug, content, view_count, status,
-                   created_at, updated_at, deleted_at
-            FROM articles
-            WHERE id = ?
-        ");
+        SELECT
+            id,
+            owner_id,
+            title,
+            slug,
+            content,
+            view_count,
+            status,
+            created_at,
+            updated_at,
+            deleted_at
+        FROM articles
+        WHERE id = ?
+    ");
 
         $stmt->execute([$id]);
 
@@ -373,6 +441,7 @@ class ArticleRepository
         $response = new Article();
 
         $response->id = (int) $result['id'];
+        $response->ownerId = (int) $result['owner_id'];
         $response->title = $result['title'];
         $response->slug = $result['slug'];
         $response->content = $result['content'];

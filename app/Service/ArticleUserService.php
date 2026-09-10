@@ -34,24 +34,103 @@ class ArticleUserService
         return $this->articleUserRepository->save($articleUser);
     }
 
-    public function sync(int $articleId, array $userIds): void
-    {
+    public function sync(
+        int $articleId,
+        array $userIds,
+        int $currentUserId,
+        int $ownerId
+    ): void {
+        if ($articleId <= 0) {
+            throw new Exception('Article ID is invalid.');
+        }
+
+        if ($currentUserId <= 0) {
+            throw new Exception('User ID is invalid.');
+        }
+
+        if ($ownerId <= 0) {
+            throw new Exception('Owner ID is invalid.');
+        }
+
+        /*
+        |----------------------------------------------------------------------
+        | Ambil collaborator saat ini
+        |----------------------------------------------------------------------
+        */
+
+        $currentArticleUsers =
+            $this->articleUserRepository->getByArticleId($articleId);
+
+        $currentUserIds = array_map(
+            'intval',
+            array_column($currentArticleUsers, 'user_id')
+        );
+
+        /*
+        |----------------------------------------------------------------------
+        | Bersihkan data dari form
+        |----------------------------------------------------------------------
+        */
+
         $userIds = array_map('intval', $userIds);
 
-        // Hilangkan ID duplikat
-        $userIds = array_unique($userIds);
-
-        // Buang ID tidak valid
         $userIds = array_filter(
             $userIds,
             fn($userId) => $userId > 0
         );
+
+        /*
+        |----------------------------------------------------------------------
+        | Owner selalu masuk article_user
+        |----------------------------------------------------------------------
+        */
+
+        $userIds[] = $ownerId;
+
+        /*
+        |----------------------------------------------------------------------
+        | Normalisasi
+        |----------------------------------------------------------------------
+        */
+
+        $currentUserIds = array_values(
+            array_unique($currentUserIds)
+        );
+
+        $userIds = array_values(
+            array_unique($userIds)
+        );
+
+        sort($currentUserIds);
+        sort($userIds);
+
+        /*
+        |----------------------------------------------------------------------
+        | Hanya owner yang boleh mengubah collaborator
+        |----------------------------------------------------------------------
+        */
+
+        if (
+            $currentUserIds !== $userIds &&
+            $currentUserId !== $ownerId
+        ) {
+            throw new Exception(
+                'You are not allowed to manage article collaborators.'
+            );
+        }
+
+        /*
+        |----------------------------------------------------------------------
+        | Simpan
+        |----------------------------------------------------------------------
+        */
 
         $this->articleUserRepository->sync(
             $articleId,
             $userIds
         );
     }
+
 
     public function getUsersByArticleId(int $articleId): array
     {

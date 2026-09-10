@@ -128,7 +128,7 @@
 
                                         <?php if (!empty($authorImages[$index])): ?>
 
-                                            <img src="<?= htmlspecialchars($authorImages[$index]) ?? '/uploads/user-img/default-img-user.png' ?>"
+                                            <img src="<?= htmlspecialchars($authorImages[$index]) ?>"
                                                 alt="<?= htmlspecialchars($author) ?>" class="author-avatar">
 
                                         <?php else: ?>
@@ -163,6 +163,25 @@
 
                         <?php endif; ?>
 
+
+                        <?php if (isset($model['article']['view_count'])): ?>
+
+                            <span class="article-view">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" aria-hidden="true">
+                                    <path
+                                        d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+
+                                <?= number_format((int) $model['article']['view_count']) ?>
+
+                            </span>
+
+                        <?php endif; ?>
+
                     </div>
 
 
@@ -180,6 +199,90 @@
                 </div>
 
             </article>
+
+            <!-- Article Actions -->
+            <div class="article-actions">
+
+                <!-- Share -->
+                <button type="button" class="article-action-btn article-share-btn" id="article-share-btn">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+
+                    <span>Bagikan</span>
+
+                </button>
+
+
+                <!-- Like -->
+                <?php
+                $isLiked = !empty($model['article']['is_liked']);
+                ?>
+
+                <?php if ($isLiked): ?>
+
+                    <form action="/article/unlike" method="POST" class="article-like-form">
+
+                        <input type="hidden" name="article_id" value="<?= (int) $model['article']['id'] ?>">
+
+                        <button type="submit" class="article-action-btn article-like-btn liked">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true">
+                                <path d="M7 10v12"></path>
+                                <path
+                                    d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z">
+                                </path>
+                            </svg>
+
+                            <span>
+                                <?= number_format(
+                                    (int) $model['article']['like_count']
+                                ) ?>
+                            </span>
+
+                        </button>
+
+                    </form>
+
+                <?php else: ?>
+
+                    <form action="/article/like" method="POST" class="article-like-form">
+
+                        <input type="hidden" name="article_id" value="<?= (int) $model['article']['id'] ?>">
+
+                        <button type="submit" class="article-action-btn article-like-btn">
+
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                aria-hidden="true">
+                                <path d="M7 10v12"></path>
+                                <path
+                                    d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z">
+                                </path>
+                            </svg>
+
+                            <span>
+                                <?= number_format(
+                                    (int) $model['article']['like_count']
+                                ) ?>
+                            </span>
+
+                        </button>
+
+                    </form>
+
+                <?php endif; ?>
+
+            </div>
 
             <!-- Comments -->
             <section class="comments-section">
@@ -214,7 +317,9 @@
                     <div class="comment-login-message">
                         <p>
                             Silakan
-                            <a href="/login">login</a>
+                            <a href="/login?redirect=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
+                                login
+                            </a>
                             untuk memberikan komentar.
                         </p>
                     </div>
@@ -330,13 +435,15 @@
 
                                     <?php else: ?>
 
-                                        <span>
+                                        <button type="button" class="comment-action-btn comment-action-disabled"
+                                            aria-disabled="true">
                                             🤍 <?= (int) $comment['like_count'] ?>
-                                        </span>
+                                        </button>
 
-                                        <a href="/login">
+                                        <button type="button" class="comment-action-btn comment-action-disabled"
+                                            aria-disabled="true">
                                             Balas
-                                        </a>
+                                        </button>
 
                                     <?php endif; ?>
 
@@ -555,6 +662,18 @@
         width: 100%;
         max-width: 900px;
         margin: 0 auto;
+    }
+
+    .article-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--dark);
+    }
+
+    .article-view svg {
+        width: 16px;
+        height: 16px;
     }
 
     .article-tags {
@@ -848,6 +967,62 @@
     .article-body img {
         max-width: 100%;
         height: auto;
+    }
+
+    .article-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 24px 0;
+        padding: 14px 18px;
+        border: 2px solid var(--dark);
+        background: #fff;
+    }
+
+    .article-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+
+        border: 2px solid var(--dark);
+        background: #fff;
+
+        padding: 8px 14px;
+
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease,
+            background 0.15s ease;
+    }
+
+    .article-action-btn:hover {
+        transform: translate(-2px, -2px);
+        box-shadow: 3px 3px 0 var(--dark);
+    }
+
+    .article-action-btn:active {
+        transform: translate(0, 0);
+        box-shadow: none;
+    }
+
+    .article-like-form {
+        margin: 0;
+    }
+
+    .article-like-btn.liked {
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .article-like-btn.liked svg {
+        fill: currentColor;
     }
 
 
@@ -1432,12 +1607,18 @@
         padding: 8px 16px;
 
         border: 3px solid #111;
+        box-shadow: 4px 4px 0 #111;
 
         font-family: inherit;
         font-size: 15px;
         font-weight: 700;
 
         cursor: pointer;
+    }
+
+    .cancel-reply-btn:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #111;
     }
 
     /* Kirim */
@@ -1484,7 +1665,80 @@
         text-decoration: underline;
     }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
 
+        const shareButton = document.getElementById('article-share-btn');
+
+        if (!shareButton) {
+            return;
+        }
+
+        shareButton.addEventListener('click', async function () {
+
+            const shareData = {
+                title: <?= json_encode(
+                    $model['article']['title'] ?? 'Artikel'
+                ) ?>,
+                text: 'Baca artikel ini',
+                url: window.location.href
+            };
+
+            /*
+             * Browser mendukung Web Share API
+             */
+            if (navigator.share) {
+
+                try {
+
+                    await navigator.share(shareData);
+
+                } catch (error) {
+
+                    // User membatalkan share.
+                    // Tidak perlu melakukan apa-apa.
+
+                }
+
+                return;
+            }
+
+
+            /*
+             * Browser tidak mendukung Web Share API
+             * → copy URL
+             */
+            try {
+
+                await navigator.clipboard.writeText(
+                    window.location.href
+                );
+
+                const originalText =
+                    shareButton.querySelector('span').textContent;
+
+                shareButton.querySelector('span').textContent =
+                    'Link disalin';
+
+                setTimeout(function () {
+
+                    shareButton.querySelector('span').textContent =
+                        originalText;
+
+                }, 2000);
+
+            } catch (error) {
+
+                alert(
+                    'Silakan salin URL halaman ini secara manual.'
+                );
+
+            }
+
+        });
+
+    });
+</script>
 <script>
 
     document.addEventListener('DOMContentLoaded', function () {

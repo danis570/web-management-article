@@ -32,31 +32,38 @@ class ArticleUserRepository
 
     public function sync(int $articleId, array $userIds): void
     {
-        // Hapus seluruh relasi lama
-        $stmt = $this->pdo->prepare("
-        DELETE FROM article_user
-        WHERE article_id = ?
-    ");
+        $this->pdo->beginTransaction();
 
-        $stmt->execute([$articleId]);
+        try {
+            // Hapus seluruh relasi lama
+            $stmt = $this->pdo->prepare("
+            DELETE FROM article_user
+            WHERE article_id = ?
+        ");
 
+            $stmt->execute([$articleId]);
 
-        // Tambahkan relasi baru
-        if (empty($userIds)) {
-            return;
-        }
+            // Tambahkan relasi baru
+            if (!empty($userIds)) {
+                $stmt = $this->pdo->prepare("
+                INSERT INTO article_user (article_id, user_id)
+                VALUES (?, ?)
+            ");
 
-        $stmt = $this->pdo->prepare("
-        INSERT INTO article_user (article_id, user_id)
-        VALUES (?, ?)
-    ");
+                foreach ($userIds as $userId) {
+                    $stmt->execute([
+                        $articleId,
+                        (int) $userId
+                    ]);
+                }
+            }
 
-        foreach ($userIds as $userId) {
+            $this->pdo->commit();
 
-            $stmt->execute([
-                $articleId,
-                (int) $userId
-            ]);
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+
+            throw $e;
         }
     }
 

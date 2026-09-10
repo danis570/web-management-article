@@ -5,6 +5,7 @@ namespace app\Domain;
 class Article
 {
     public ?int $id = null;
+    public int $ownerId;
     public string $title;
     public string $slug;
     public ?string $content = null;

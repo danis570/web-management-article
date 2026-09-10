@@ -183,6 +183,31 @@
         border-radius: 8px;
         display: block;
     }
+
+    .user-owner-badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 3px 7px;
+        border: 2px solid var(--dark);
+        border-radius: 4px;
+        background-color: var(--yellow-light);
+        color: var(--dark);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    .user-owner-label {
+        flex-shrink: 0;
+        padding: 4px 8px;
+        border: 2px solid var(--dark);
+        border-radius: 4px;
+        background-color: var(--yellow-light);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
 </style>
 
 
@@ -204,6 +229,14 @@
                 <div class="font-semibold neo-box login-card bg-primary mb-lg">
                     <?= htmlspecialchars($model['error']) ?>
                 </div>
+                <!-- Tombol Back to Article ala Neo-Brutalism dengan Efek Hover Inline -->
+                <a href="/me/article" class="font-semibold neo-box login-card"
+                    style="display: flex; align-items: center; justify-content: center; text-decoration: none; white-space: nowrap; background-color: transparent; color: #000000; border: 3px solid #000000; box-shadow: 4px 4px 0px #000000; transition: all 0.1s ease; transform: translate(0px, 0px);"
+                    onmouseover="this.style.transform='translate(-2px, -2px)'; this.style.boxShadow='6px 6px 0px #000000';"
+                    onmouseout="this.style.transform='translate(0px, 0px)'; this.style.boxShadow='4px 4px 0px #000000';"
+                    onmousedown="this.style.transform='translate(4px, 4px)'; this.style.boxShadow='0px 0px 0px #000000';">
+                    ← Back to Article
+                </a>
 
             <?php } else { ?>
 
@@ -624,6 +657,10 @@
     const currentUserId =
         <?= (int) ($model['currentUserId'] ?? 0) ?>;
 
+    const ownerId =
+        <?= (int) ($model['article']['owner_id'] ?? 0) ?>;
+
+    const isOwnerUser = currentUserId === ownerId;
 
     /*
     |--------------------------------------------------------------------------
@@ -649,7 +686,12 @@
 
         const userId = Number(user.id);
 
-        if (userId === currentUserId) {
+        // Owner tetap ditampilkan sebagai pembuat
+        // Current user hanya disembunyikan jika bukan owner
+        if (
+            userId === currentUserId &&
+            userId !== ownerId
+        ) {
             return;
         }
 
@@ -733,100 +775,73 @@
         }
     );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | RENDER SEARCH RESULT
-    |--------------------------------------------------------------------------
-    */
-
     function renderUserSearch(users) {
 
         userSearchResult.innerHTML = '';
 
-
         if (!users.length) {
 
             userSearchResult.innerHTML = `
-                <div style="padding: 12px;">
-                    User tidak ditemukan.
-                </div>
-            `;
+            <div style="padding: 12px;">
+                User tidak ditemukan.
+            </div>
+        `;
 
-            userSearchResult.style.display =
-                'block';
+            userSearchResult.style.display = 'block';
 
             return;
-
         }
 
 
         users.forEach(user => {
 
-            const userId =
-                Number(user.id);
+            const userId = Number(user.id);
 
 
-            /*
-            | Jangan tampilkan user yang sudah dipilih
-            */
-
+            // Jangan tampilkan user yang sudah dipilih
             if (selectedUsers.has(userId)) {
-
                 return;
-
             }
 
 
-            /*
-            | Jangan tampilkan current user
-            */
-
+            // Jangan tampilkan user yang sedang login
             if (userId === currentUserId) {
-
                 return;
-
             }
 
 
-            const item =
-                document.createElement('div');
+            // Jangan tampilkan pemilik artikel
+            if (userId === ownerId) {
+                return;
+            }
 
 
-            item.style.padding =
-                '10px 12px';
+            const item = document.createElement('div');
 
-            item.style.cursor =
-                'pointer';
-
-            item.style.borderBottom =
-                '1px solid #eee';
+            item.style.padding = '10px 12px';
+            item.style.cursor = 'pointer';
+            item.style.borderBottom = '1px solid #eee';
 
 
             item.innerHTML = `
+            <strong>
+                ${escapeHtml(user.name)}
+            </strong>
 
-                <strong>
-                    ${escapeHtml(user.name)}
-                </strong>
-
-                <div style="
-                    font-size: 13px;
-                    color: #666;
-                ">
-                    ${escapeHtml(user.email)}
-                </div>
-
-            `;
+            <div style="
+                font-size: 13px;
+                color: #666;
+            ">
+                ${escapeHtml(user.email)}
+            </div>
+        `;
 
 
-            item.addEventListener(
-                'click',
-                function () {
+            item.addEventListener('click', function () {
 
-                    addSelectedUser(user);
+                addSelectedUser(user);
 
-                }
-            );
+            });
 
 
             userSearchResult.appendChild(item);
@@ -834,11 +849,18 @@
         });
 
 
-        userSearchResult.style.display =
-            'block';
+        userSearchResult.style.display = 'block';
 
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER SEARCH RESULT
+    |--------------------------------------------------------------------------
+    */
+
+    /* |-------------------------------------------------------------------------- | RENDER SELECTED USERS |-------------------------------------------------------------------------- */ function renderSelectedUsers() { selectedUsersContainer.innerHTML = ''; if (selectedUsers.size === 0) { selectedUsersContainer.innerHTML = ` <div style=" padding: 10px; color: #666; border: 1px dashed #ccc; border-radius: 8px; "> Belum ada user lain yang terhubung. </div> `; return; } selectedUsers.forEach((user, userId) => { const wrapper = document.createElement('div'); wrapper.className = 'selected-user-item'; const isOwner = Number(userId) === ownerId; const isCurrentUser = Number(userId) === currentUserId; wrapper.innerHTML = ` <div class="selected-user-info"> <div class="selected-user-name"> ${escapeHtml(user.name)} ${isOwner ? ` <span class="user-owner-badge"> Pembuat </span> ` : ''} </div> <div class="selected-user-email"> ${escapeHtml(user.email)} </div> </div> ${isOwner ? ` <span class="user-owner-label"> Pemilik artikel </span> ` : isOwnerUser ? ` <button type="button" class="neo-btn selected-user-remove" style=" padding: 5px 10px; width: auto; " > Hapus </button> ` : ''} ${!isOwner ? ` <input type="hidden" name="selectedUsers[]" value="${userId}" > ` : ''} `; /* |-------------------------------------------------------------- | HANYA OWNER ARTIKEL BOLEH MENGHAPUS COLLABORATOR |-------------------------------------------------------------- */ if (!isOwner && isOwnerUser) { const removeButton = wrapper.querySelector('.selected-user-remove'); if (removeButton) { removeButton.addEventListener('click', function () { selectedUsers.delete(userId); renderSelectedUsers(); }); } } selectedUsersContainer.appendChild(wrapper); }); }
 
     /*
     |--------------------------------------------------------------------------
@@ -852,17 +874,16 @@
             Number(user.id);
 
 
-        if (userId === currentUserId) {
-
+        if (selectedUsers.has(userId)) {
             return;
-
         }
 
-
-        if (selectedUsers.has(userId)) {
-
+        if (userId === currentUserId) {
             return;
+        }
 
+        if (userId === ownerId) {
+            return;
         }
 
 
@@ -883,111 +904,6 @@
             'none';
 
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RENDER SELECTED USERS
-    |--------------------------------------------------------------------------
-    */
-
-    function renderSelectedUsers() {
-
-        selectedUsersContainer.innerHTML = '';
-
-
-        if (selectedUsers.size === 0) {
-
-            selectedUsersContainer.innerHTML = `
-                <div style="
-                    padding: 10px;
-                    color: #666;
-                    border: 1px dashed #ccc;
-                    border-radius: 8px;
-                ">
-                    Belum ada user lain yang terhubung.
-                </div>
-            `;
-
-            return;
-
-        }
-
-
-        selectedUsers.forEach(
-            (user, userId) => {
-
-                const wrapper =
-                    document.createElement('div');
-
-
-                wrapper.className =
-                    'selected-user-item';
-
-
-                wrapper.innerHTML = `
-
-                    <div class="selected-user-info">
-
-                        <div class="selected-user-name">
-                            ${escapeHtml(user.name)}
-                        </div>
-
-                        <div class="selected-user-email">
-                            ${escapeHtml(user.email)}
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        class="neo-btn"
-                        style="
-                            padding: 5px 10px;
-                            width: auto;
-                        "
-                    >
-                        Hapus
-                    </button>
-
-
-                    <input
-                        type="hidden"
-                        name="selectedUsers[]"
-                        value="${userId}"
-                    >
-
-                `;
-
-
-                const removeButton =
-                    wrapper.querySelector('button');
-
-
-                removeButton.addEventListener(
-                    'click',
-                    function () {
-
-                        selectedUsers.delete(
-                            userId
-                        );
-
-                        renderSelectedUsers();
-
-                    }
-                );
-
-
-                selectedUsersContainer.appendChild(
-                    wrapper
-                );
-
-            }
-        );
-
-    }
-
 
     /*
     |--------------------------------------------------------------------------

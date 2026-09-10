@@ -192,6 +192,24 @@ app\App\Router::add(
     'getByTag'
 );
 
+// =========================
+// Article Like
+// =========================
+
+app\App\Router::add(
+    'POST',
+    '/article/like',
+    ArticleController::class,
+    'like'
+);
+
+app\App\Router::add(
+    'POST',
+    '/article/unlike',
+    ArticleController::class,
+    'unlike'
+);
+
 
 // -------------------------
 // Article Detail

@@ -60,39 +60,87 @@
 
                             </div>
 
-
-                            <!-- =========================
-                                 ISI ARTIKEL
-                            ========================== -->
-                            <div class="article-body">
-
-                                <p class="article-text">
-                                    <?= htmlspecialchars(
-                                        substr(
-                                            strip_tags($article['content'] ?? ''),
-                                            0,
-                                            100
-                                        )
-                                    ) ?>...
-                                </p>
-
-                            </div>
-
-
                             <!-- =========================
                                  DETAIL ARTIKEL
                             ========================== -->
                             <div class="article-details">
 
-                                <?php if (!empty($article['connected_users'])): ?>
 
-                                    <p class="article-author">Terhubung dengan:</p>
+                                <!-- Dibuat oleh -->
+                                <?php if (!empty($article['owner_name'])): ?>
 
-                                    <p class="article-users">
-                                        <?= htmlspecialchars($article['connected_users']) ?>
-                                    </p>
+                                    <div class="article-user-group">
+
+                                        <p class="article-author">
+                                            Dibuat oleh:
+                                        </p>
+
+                                        <p class="article-users">
+
+                                            <?php if ($article['owner_name'] === $model['currentUserName']): ?>
+
+                                                <span class="current-user-name">
+                                                    You
+                                                </span>
+
+                                            <?php else: ?>
+
+                                                <?= htmlspecialchars($article['owner_name']) ?>
+
+                                            <?php endif; ?>
+
+                                        </p>
+
+                                    </div>
 
                                 <?php endif; ?>
+
+
+                                <!-- Kolaborator -->
+                                <?php if (!empty($article['connected_users'])): ?>
+
+                                    <div class="article-user-group">
+
+                                        <p class="article-author">
+                                            Kolaborator:
+                                        </p>
+
+                                        <p class="article-users">
+
+                                            <?php
+                                            $connectedUsers = array_map(
+                                                'trim',
+                                                explode(',', $article['connected_users'])
+                                            );
+                                            ?>
+
+                                            <?php foreach ($connectedUsers as $index => $userName): ?>
+
+                                                <?php if ($index > 0): ?>
+                                                    ,
+                                                <?php endif; ?>
+
+                                                <?php if ($userName === $model['currentUserName']): ?>
+
+                                                    <span class="current-user-name">
+                                                        You
+                                                    </span>
+
+                                                <?php else: ?>
+
+                                                    <?= htmlspecialchars($userName) ?>
+
+                                                <?php endif; ?>
+
+                                            <?php endforeach; ?>
+
+                                        </p>
+
+                                    </div>
+
+                                <?php endif; ?>
+
+
 
 
                                 <!-- =========================
@@ -263,14 +311,50 @@
 
 
     /* =========================================
+   AUTHOR & COLLABORATORS
+========================================= */
+
+    .article-user-group {
+        margin-bottom: 0.6rem;
+    }
+
+    .article-user-group:last-child {
+        margin-bottom: 0;
+    }
+
+
+    /* Label */
+
+    .article-card .article-author {
+        margin: 0;
+
+        font-size: 0.8rem;
+
+        font-weight: 800;
+
+        color: var(--dark);
+    }
+
+
+    /* Nama user */
+
+    .article-card .article-users {
+        margin: 0.15rem 0 0;
+
+        font-size: 0.85rem;
+
+        line-height: 1.4;
+
+        color: #555555;
+    }
+
+    /* =========================================
        ARTICLE DETAILS
     ========================================= */
 
     .article-card .article-details {
         display: flex;
         flex-direction: column;
-
-        border-top: 2px dashed var(--dark);
 
         padding-top: 0.75rem;
 
@@ -347,6 +431,14 @@
 
     .neo-card.article-card {
         transition: all 0.3s ease;
+    }
+
+    .current-user-name {
+        background-color: var(--yellow-light);
+        padding: 0.15rem 0.45rem;
+        color: var(--dark);
+        border: 1px solid black;
+        font-weight: 700;
     }
 
 

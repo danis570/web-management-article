@@ -77,7 +77,19 @@ class AuthController
                 $_SESSION['admin'] = true;
             }
 
-            header('Location: /');
+            // Ambil URL tujuan setelah login
+            $redirect = $_POST['redirect'] ?? '/';
+
+            if (
+                !is_string($redirect) ||
+                $redirect === '' ||
+                $redirect[0] !== '/' ||
+                str_starts_with($redirect, '//')
+            ) {
+                $redirect = '/';
+            }
+
+            header('Location: ' . $redirect);
             exit();
 
         } catch (Exception $e) {

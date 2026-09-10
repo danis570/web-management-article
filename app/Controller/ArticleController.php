@@ -7,17 +7,23 @@ use app\App\View;
 use app\Model\ArticleAddRequest;
 use app\Model\ArticleEditRequest;
 use app\Repository\ArticleImageRepository;
+use app\Repository\ArticleLikeRepository;
 use app\Repository\ArticleRepository;
 use app\Repository\ArticleTagRepository;
 use app\Repository\ArticleUserRepository;
+use app\Repository\ArticleViewRepository;
 use app\Repository\CommentRepository;
+use app\Repository\ProfileRepository;
 use app\Repository\TagRepository;
 use app\Repository\UserRepository;
 use app\Service\ArticleImageService;
+use app\Service\ArticleLikeService;
 use app\Service\ArticleService;
 use app\Service\ArticleTagService;
 use app\Service\ArticleUserService;
+use app\Service\ArticleViewService;
 use app\Service\CommentService;
+use app\Service\ProfileService;
 use app\Service\TagService;
 use app\Service\UserService;
 use Exception;
@@ -34,6 +40,9 @@ class ArticleController
     private UserService $userService;
 
     private CommentService $commentService;
+    private ArticleViewService $articleViewService;
+    private ArticleLikeService $articleLikeService;
+    private ProfileService $profileService;
     public function __construct()
     {
         $pdo = Database::getConnection();
@@ -57,13 +66,19 @@ class ArticleController
             $articleImageRepository
         );
 
-        $tagRepository = new TagRepository($pdo);
-
         $commentRepository = new CommentRepository($pdo);
 
         $this->commentService = new CommentService(
             $commentRepository
         );
+        $articleViewRepository = new ArticleViewRepository();
+        $this->articleViewService = new ArticleViewService($articleViewRepository);
+
+        $articleLikeRepository = new ArticleLikeRepository();
+        $this->articleLikeService = new ArticleLikeService($articleLikeRepository);
+
+        $profileRepository = new ProfileRepository($pdo);
+        $this->profileService = new ProfileService($profileRepository);
 
         $userRepository = new UserRepository($pdo);
         $this->userService = new UserService($userRepository);
@@ -98,34 +113,48 @@ class ArticleController
         }
     }
 
-    public function myArticle(): void
-    {
-        // Admin tidak boleh mengakses halaman artikel user
-        if ($_SESSION['admin'] ?? false) {
-            header('Location: /');
-            exit();
-        }
 
-        // Harus login
-        if (!($_SESSION['login'] ?? false)) {
-            header('Location: /login');
-            exit();
-        }
 
-        $data = [
-            'title' => 'My Article',
-            'current' => 'my-article',
-        ];
-
-        try {
-            $user = $this->userService->getUserByEmail($_SESSION['email']);
-            $data['article'] = $this->articleService->getByUserId($user->id);
-        } catch (Exception $e) {
-            $data['emptyArticle'] = $e->getMessage();
-        }
-
-        View::renderUser('/Article/me', $data);
+public function myArticle(): void
+{
+    // Admin tidak boleh mengakses halaman artikel user
+    if ($_SESSION['admin'] ?? false) {
+        header('Location: /');
+        exit();
     }
+
+    // Harus login
+    if (!($_SESSION['login'] ?? false)) {
+        header('Location: /login');
+        exit();
+    }
+
+    $data = [
+        'title' => 'My Article',
+        'current' => 'my-article',
+    ];
+
+    try {
+        $user = $this->userService->getUserByEmail($_SESSION['email']);
+
+        $data['article'] = $this->articleService->getByUserId($user->id);
+
+        // Ambil profile user yang sedang login
+        $profile = $this->profileService->getByUserId($user->id);
+
+        // Kirim nama user ke view
+        $data['currentUserName'] = $profile->name;
+
+    } catch (Exception $e) {
+        $data['emptyArticle'] = $e->getMessage();
+    }
+
+    View::renderUser('/Article/me', $data);
+}
+
+
+
+
     public function detail(array $params): void
     {
         $slug = $params['slug'] ?? '';
@@ -143,29 +172,216 @@ class ArticleController
                 throw new Exception('Article not found.');
             }
 
+            /*
+             * =========================
+             * VISITOR ID
+             * =========================
+             */
+
+            $visitorId = $this->getVisitorId();
+
+            $userId = !empty($_SESSION['user_id'])
+                ? (int) $_SESSION['user_id']
+                : null;
+
+
+            /*
+             * =========================
+             * ARTICLE VIEW
+             * =========================
+             */
+
+            $isNewView = $this->articleViewService->add(
+                (int) $article['id'],
+                $visitorId,
+                $userId
+            );
+
+            if ($isNewView) {
+
+                $this->articleService->incrementViewCount(
+                    (int) $article['id']
+                );
+
+                // Agar angka yang dikirim ke view langsung bertambah
+                $article['view_count']++;
+            }
+
+
+            /*
+             * =========================
+             * ARTICLE LIKE
+             * =========================
+             */
+
+            $article['is_liked'] = $this->articleLikeService->isLiked(
+                (int) $article['id'],
+                $visitorId
+            );
+
+
+            /*
+             * =========================
+             * ARTICLE DATA
+             * =========================
+             */
+
             $data['title'] = $article['title'];
+
             $data['article'] = $article;
 
-            $data['images'] = $this->articleImageService
-                ->getByArticleId($article['id']);
 
-            $userId = (int) ($_SESSION['user_id'] ?? 0);
+            /*
+             * =========================
+             * ARTICLE IMAGES
+             * =========================
+             */
+
+            $data['images'] = $this->articleImageService
+                ->getByArticleId(
+                    (int) $article['id']
+                );
+
+
+            /*
+             * =========================
+             * COMMENTS
+             * =========================
+             */
+
+            $commentUserId = (int) ($_SESSION['user_id'] ?? 0);
 
             $data['comments'] = $this->commentService
                 ->getByArticleId(
-                    $article['id'],
-                    $userId
+                    (int) $article['id'],
+                    $commentUserId
                 );
 
         } catch (Exception $e) {
+
             $data['error'] = $e->getMessage();
         }
 
+
+        /*
+         * =========================
+         * RENDER
+         * =========================
+         */
+
         if ($isLoggedIn) {
-            View::renderUser('/Article/detail', $data);
+
+            View::renderUser(
+                '/Article/detail',
+                $data
+            );
+
         } else {
-            View::renderPublic('/Article/detail', $data);
+
+            View::renderPublic(
+                '/Article/detail',
+                $data
+            );
         }
+    }
+
+    // Like artikel
+    public function like(): void
+    {
+        try {
+            $articleId = (int) ($_POST['article_id'] ?? 0);
+
+            if ($articleId <= 0) {
+                throw new Exception('Artikel tidak valid.');
+            }
+
+            // Ambil / buat visitor ID
+            $visitorId = $this->getVisitorId();
+
+            // User ID jika sedang login
+            $userId = !empty($_SESSION['user_id'])
+                ? (int) $_SESSION['user_id']
+                : null;
+
+            // Tambahkan like
+            $isLiked = $this->articleLikeService->like(
+                $articleId,
+                $visitorId,
+                $userId
+            );
+
+            // Jika benar-benar like baru
+            if ($isLiked) {
+                $this->articleService->incrementLikeCount(
+                    $articleId
+                );
+            }
+
+        } catch (Exception $e) {
+            // Bisa diganti dengan session flash message nanti
+        }
+
+        // Kembali ke halaman artikel sebelumnya
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/article'));
+        exit();
+    }
+
+
+    // Unlike artikel
+    public function unlike(): void
+    {
+        try {
+            $articleId = (int) ($_POST['article_id'] ?? 0);
+
+            if ($articleId <= 0) {
+                throw new Exception('Artikel tidak valid.');
+            }
+
+            // Visitor ID
+            $visitorId = $this->getVisitorId();
+
+            // Hapus like
+            $isUnliked = $this->articleLikeService->unlike(
+                $articleId,
+                $visitorId
+            );
+
+            // Jika memang sebelumnya sudah like
+            if ($isUnliked) {
+                $this->articleService->decrementLikeCount(
+                    $articleId
+                );
+            }
+
+        } catch (Exception $e) {
+            // Bisa diganti dengan session flash message nanti
+        }
+
+        // Kembali ke halaman artikel sebelumnya
+        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/article'));
+        exit();
+    }
+
+    private function getVisitorId(): string
+    {
+        if (!empty($_COOKIE['visitor_id'])) {
+            return $_COOKIE['visitor_id'];
+        }
+
+        $visitorId = bin2hex(random_bytes(32));
+
+        setcookie(
+            'visitor_id',
+            $visitorId,
+            [
+                'expires' => time() + (60 * 60 * 24 * 365),
+                'path' => '/',
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]
+        );
+
+        return $visitorId;
     }
 
     public function tag(array $params): void
@@ -364,9 +580,11 @@ class ArticleController
         $id = (int) ($_GET['id'] ?? 0);
 
         try {
-            $user = $this->userService->getUserByEmail($_SESSION['email']);
+            $user = $this->userService->getUserByEmail(
+                $_SESSION['email']
+            );
 
-            // Validasi hak akses
+            // Validasi bahwa user terhubung dengan artikel
             $this->articleUserService->validateUserCanEdit(
                 $id,
                 $user->id
@@ -374,11 +592,20 @@ class ArticleController
 
             $article = $this->articleService->getById($id);
 
-            $images = $this->articleImageService->getByArticleId($id);
+            // Tentukan apakah user yang sedang login adalah owner
+            $isOwner = (
+                (int) $article['owner_id'] ===
+                (int) $user->id
+            );
 
-            $articleUsers = $this->articleUserService->getUsersByArticleId($id);
+            $images = $this->articleImageService
+                ->getByArticleId($id);
 
-            $articleTags = $this->articleTagService->getByArticleId($id);
+            $articleUsers = $this->articleUserService
+                ->getUsersByArticleId($id);
+
+            $articleTags = $this->articleTagService
+                ->getByArticleId($id);
 
             View::renderUser('/Article/edit', [
                 'title' => 'Edit Article',
@@ -386,10 +613,14 @@ class ArticleController
                 'images' => $images,
                 'articleUsers' => $articleUsers,
                 'articleTags' => $articleTags,
-                'currentUserId' => $user->id
+
+                'currentUserId' => $user->id,
+                'ownerId' => (int) $article['owner_id'],
+                'isOwner' => $isOwner
             ]);
 
         } catch (Exception $e) {
+
             View::renderUser('/Article/edit', [
                 'title' => 'Edit Article',
                 'error' => $e->getMessage()
@@ -404,16 +635,70 @@ class ArticleController
 
         try {
 
+            /*
+            |--------------------------------------------------------------------------
+            | Get Current User
+            |--------------------------------------------------------------------------
+            */
+
             $user = $this->userService->getUserByEmail(
                 $_SESSION['email']
             );
 
             $articleId = (int) ($_POST['id'] ?? 0);
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validate User Can Edit Article
+            |--------------------------------------------------------------------------
+            */
+
             $this->articleUserService->validateUserCanEdit(
                 $articleId,
                 $user->id
             );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Get Article
+            |--------------------------------------------------------------------------
+            */
+
+            $article = $this->articleService->getById($articleId);
+
+            $isOwner = (
+                (int) $article['owner_id'] ===
+                (int) $user->id
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sync User Article
+            |--------------------------------------------------------------------------
+            |
+            | Hanya owner yang boleh mengubah collaborator.
+            |
+            */
+
+            if ($isOwner) {
+
+                $selectedUsers = $_POST['selectedUsers'] ?? [];
+
+                if (!is_array($selectedUsers)) {
+                    $selectedUsers = [];
+                }
+
+                $this->articleUserService->sync(
+                    $articleId,
+                    $selectedUsers,
+                    (int) $user->id,
+                    (int) $article['owner_id']
+                );
+            }
+
 
             /*
             |--------------------------------------------------------------------------
@@ -429,29 +714,6 @@ class ArticleController
 
             $this->articleService->edit($request);
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | Sync User Article
-            |--------------------------------------------------------------------------
-            */
-
-            $selectedUsers = $_POST['selectedUsers'] ?? [];
-
-            if (!is_array($selectedUsers)) {
-                $selectedUsers = [];
-            }
-
-            /*
-             * Pastikan pembuat/editor tetap memiliki akses
-             * ke artikel.
-             */
-            $selectedUsers[] = $user->id;
-
-            $this->articleUserService->sync(
-                $articleId,
-                $selectedUsers
-            );
 
             /*
             |--------------------------------------------------------------------------
@@ -505,6 +767,10 @@ class ArticleController
 
             if (is_array($existingCaptions)) {
 
+                $deletedImageIds = is_array($deleteImages)
+                    ? array_map('intval', $deleteImages)
+                    : [];
+
                 foreach ($existingCaptions as $imageId => $caption) {
 
                     $imageId = (int) $imageId;
@@ -517,9 +783,13 @@ class ArticleController
                      * Jangan update caption gambar
                      * yang sedang dihapus.
                      */
+
                     if (
-                        is_array($deleteImages) &&
-                        in_array($imageId, array_map('intval', $deleteImages), true)
+                        in_array(
+                            $imageId,
+                            $deletedImageIds,
+                            true
+                        )
                     ) {
                         continue;
                     }
@@ -545,6 +815,10 @@ class ArticleController
             ) {
 
                 $captions = $_POST['captions'] ?? [];
+
+                if (!is_array($captions)) {
+                    $captions = [];
+                }
 
                 foreach (
                     $_FILES['images']['name'] as $key => $name
@@ -606,24 +880,44 @@ class ArticleController
     |--------------------------------------------------------------------------
     */
 
-    function delete()
+    public function delete(): void
     {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
         }
 
         try {
+            $user = $this->userService->getUserByEmail(
+                $_SESSION['email']
+            );
 
-            $id = (int) ($_POST['id'] ?? 0);
+            $articleId = (int) ($_POST['id'] ?? 0);
 
-            $this->articleService->deleteById($id);
+            if ($articleId <= 0) {
+                throw new Exception('Article not found.');
+            }
+
+            $article = $this->articleService->getById($articleId);
+
+            // Hanya owner yang boleh menghapus artikel
+            if ((int) $article['owner_id'] !== (int) $user->id) {
+                throw new Exception(
+                    'You are not allowed to delete this article.'
+                );
+            }
+
+            $this->articleService->deleteById($articleId);
 
             header('Location: /article');
             exit();
 
         } catch (Exception $e) {
 
-            header('Location: /article?error=' . urlencode($e->getMessage()));
+            header(
+                'Location: /article?error=' .
+                urlencode($e->getMessage())
+            );
+
             exit();
         }
     }

@@ -24,6 +24,8 @@ class ArticleService
         $this->addValidation($request);
 
         $article = new Article();
+
+        $article->ownerId = $request->userId;
         $article->title = $request->title;
         $article->slug = $this->createSlug($request->title);
         $article->content = $request->content;
@@ -56,6 +58,18 @@ class ArticleService
         $response->article = $result;
 
         return $response;
+    }
+
+    public function incrementLikeCount(int $articleId): void
+    {
+        $this->articleRepository
+            ->incrementLikeCount($articleId);
+    }
+
+    public function decrementLikeCount(int $articleId): void
+    {
+        $this->articleRepository
+            ->decrementLikeCount($articleId);
     }
 
     function deleteById(int $id): void
