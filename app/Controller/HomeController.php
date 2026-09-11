@@ -67,120 +67,59 @@ class HomeController
 
     public function home(): void
     {
-
+        // 1. Cek status login
         if (!$this->sessionService->isLoggedIn()) {
-
-            View::renderPublic(
-                '/home',
-                [
-                    'title' =>
-                        'Blog App - by: Danish'
-                ]
-            );
-
+            View::renderPublic('/home', [
+                'title' => 'Blog App - by: Danish'
+            ]);
             return;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Current User ID
-        |--------------------------------------------------------------------------
-        */
-
-        $userId =
-            $this->sessionService->getCurrentUserId();
-
+        $userId = $this->sessionService->getCurrentUserId();
 
         if ($userId === null) {
-
-            View::renderPublic(
-                '/home',
-                [
-                    'title' =>
-                        'Blog App - by: Danish'
-                ]
-            );
-
+            View::renderPublic('/home', [
+                'title' => 'Blog App - by: Danish'
+            ]);
             return;
         }
 
-        $user =
-            $this->userService->getUserById(
-                $userId
-            );
+        // 2. Ambil data user untuk mengecek Role
+        $user = $this->userService->getUserById($userId);
 
+        // 3. JIKA ADMIN: Langsung render halaman admin (Tanpa cek Profile)
+        if ($user->role === UserRole::ADMIN) {
+            View::renderAdmin('/dashboard', [
+                'title' => 'Blog App - by: Danish',
+                'user' => [
+                    'name' => 'Administrator', // Nilai default/statis untuk admin
+                    'position' => 'Super Admin',
+                    'period' => '-',
+                    'img' => 'default-admin.png'
+                ]
+            ]);
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | Profile
+        | USER (Hanya diakses oleh user biasa yang memiliki profil)
         |--------------------------------------------------------------------------
+        | Jalur di bawah ini hanya berjalan jika user BUKAN admin.
         */
-
-        $profile =
-            $this->profileService->getByUserId(
-                $user->id
-            );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | User Data
-        |--------------------------------------------------------------------------
-        */
+        $profile = $this->profileService->getByUserId($user->id);
 
         $userData = [
-            'name' =>
-                $profile->name,
-
-            'position' =>
-                $profile->position,
-
-            'period' =>
-                $profile->period,
-
-            'img' =>
-                $profile->img
+            'name' => $profile->name,
+            'position' => $profile->position,
+            'period' => $profile->period,
+            'img' => $profile->img
         ];
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ADMIN
-        |--------------------------------------------------------------------------
-        */
-
-        if ($user->role === UserRole::ADMIN) {
-
-            View::renderAdmin(
-                '/dashboard',
-                [
-                    'title' =>
-                        'Blog App - by: Danish',
-
-                    'user' =>
-                        $userData
-                ]
-            );
-
-            return;
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | USER
-        |--------------------------------------------------------------------------
-        */
-
-        View::renderUser(
-            '/dashboard',
-            [
-                'title' =>
-                    'Blog App - by: Danish',
-
-                'user' =>
-                    $userData
-            ]
-        );
+        View::renderUser('/dashboard', [
+            'title' => 'Blog App - by: Danish',
+            'user' => $userData
+        ]);
     }
+
 }

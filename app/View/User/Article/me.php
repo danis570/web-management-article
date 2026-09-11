@@ -169,19 +169,22 @@
 
                                     </form>
 
-
                                     <!-- Delete -->
-                                    <form action="/article/delete" method="post" style="flex: 1; margin: 0;"
-                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus artikel ini?')">
+                                    <form id="form-delete-<?= (int) $article['id'] ?>" action="/article/delete" method="post"
+                                        style="flex: 1; margin: 0;">
 
-                                        <button name="id" value="<?= (int) $article['id'] ?>" type="submit"
-                                            class="neo-btn neo-btn-sm" style="
+                                        <input type="hidden" name="id" value="<?= (int) $article['id'] ?>">
+
+                                        <button type="button" class="neo-btn neo-btn-sm" style="
                                                 width: 100%;
                                                 background-color: #ff5757;
                                                 color: #fff;
                                                 font-size: 0.8rem;
                                                 padding: 0.5rem;
-                                            ">
+                                            " onclick="openDeleteArticleModal(
+                                                '<?= htmlspecialchars($article['title'], ENT_QUOTES) ?>',
+                                                'form-delete-<?= (int) $article['id'] ?>'
+                                            )">
 
                                             Delete
 
@@ -196,6 +199,52 @@
                         </div>
 
                     <?php } ?>
+
+                </div>
+
+                <!-- =========================
+     DELETE ARTICLE MODAL
+========================= -->
+
+                <div id="deleteArticleModalOverlay" class="neo-modal-overlay" style="display: none;">
+
+                    <div class="neo-modal-box">
+
+                        <div class="neo-modal-header">
+                            PERHATIAN!
+                        </div>
+
+                        <div class="neo-modal-body">
+
+                            <p>
+                                Apakah Anda yakin ingin menghapus artikel:
+                            </p>
+
+                            <strong id="deleteArticleTargetTitle"></strong>
+
+                            <p style="margin-top: 0.75rem;">
+                                Artikel yang dihapus tidak dapat ditampilkan lagi.
+                            </p>
+
+                        </div>
+
+                        <div class="neo-modal-footer">
+
+                            <button type="button" class="neo-btn-modal btn-cancel" onclick="closeDeleteArticleModal()">
+
+                                Batal
+
+                            </button>
+
+                            <button type="button" class="neo-btn-modal btn-confirm" id="deleteArticleSubmitBtn">
+
+                                Ya, Hapus!
+
+                            </button>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -450,6 +499,153 @@
         row-gap: 1.5rem !important;
     }
 
+    /* =========================================
+   DELETE ARTICLE MODAL
+========================================= */
+
+    .neo-modal-overlay {
+        position: fixed;
+        inset: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background-color: rgba(0, 0, 0, 0.6);
+
+        z-index: 9999;
+
+        padding: 1rem;
+    }
+
+
+    .neo-modal-box {
+        width: 100%;
+        max-width: 500px;
+
+        background-color: #ffffff;
+
+        border: 3px solid var(--dark);
+
+        box-shadow: 8px 8px 0 var(--dark);
+
+        transform: rotate(-1deg);
+
+        box-sizing: border-box;
+    }
+
+
+    .neo-modal-header {
+        padding: 1rem 1.25rem;
+
+        background-color: #ff5757;
+
+        color: #ffffff;
+
+        border-bottom: 3px solid var(--dark);
+
+        font-size: 1.2rem;
+        font-weight: 900;
+    }
+
+
+    .neo-modal-body {
+        padding: 1.5rem 1.25rem;
+
+        color: var(--dark);
+
+        line-height: 1.5;
+    }
+
+
+    .neo-modal-body p {
+        margin: 0;
+    }
+
+
+    #deleteArticleTargetTitle {
+        display: block;
+
+        margin-top: 0.5rem;
+
+        padding: 0.5rem 0.75rem;
+
+        background-color: var(--yellow-light);
+
+        border: 2px solid var(--dark);
+
+        font-weight: 800;
+
+        overflow-wrap: anywhere;
+    }
+
+
+    .neo-modal-footer {
+        display: flex;
+
+        justify-content: flex-end;
+
+        gap: 0.75rem;
+
+        padding: 1rem 1.25rem;
+
+        border-top: 3px solid var(--dark);
+    }
+
+
+    .neo-btn-modal {
+        border: 2px solid var(--dark);
+
+        padding: 0.65rem 1rem;
+
+        font-weight: 800;
+
+        cursor: pointer;
+
+        box-shadow: 3px 3px 0 var(--dark);
+
+        transition: transform 0.1s ease,
+            box-shadow 0.1s ease;
+    }
+
+
+    .neo-btn-modal:active {
+        transform: translate(3px, 3px);
+
+        box-shadow: 0 0 0 var(--dark);
+    }
+
+
+    .btn-cancel {
+        background-color: #ffffff;
+
+        color: var(--dark);
+    }
+
+
+    .btn-confirm {
+        background-color: #ff5757;
+
+        color: #ffffff;
+    }
+
+
+    @media (max-width: 500px) {
+
+        .neo-modal-box {
+            max-width: 100%;
+        }
+
+        .neo-modal-footer {
+            flex-direction: column;
+        }
+
+        .neo-btn-modal {
+            width: 100%;
+        }
+
+    }
+
 
     /* =========================================
        MOBILE
@@ -530,4 +726,70 @@
         });
 
     });
+</script>
+
+<script>
+
+    let activeDeleteArticleFormId = null;
+
+
+    function openDeleteArticleModal(articleTitle, formId) {
+
+        activeDeleteArticleFormId = formId;
+
+        const overlay =
+            document.getElementById('deleteArticleModalOverlay');
+
+        const targetTitle =
+            document.getElementById('deleteArticleTargetTitle');
+
+        const submitButton =
+            document.getElementById('deleteArticleSubmitBtn');
+
+
+        targetTitle.textContent = articleTitle;
+
+        overlay.style.display = 'flex';
+
+
+        submitButton.onclick = function () {
+
+            if (activeDeleteArticleFormId) {
+
+                document
+                    .getElementById(activeDeleteArticleFormId)
+                    .submit();
+
+            }
+
+        };
+
+    }
+
+
+    function closeDeleteArticleModal() {
+
+        const overlay =
+            document.getElementById('deleteArticleModalOverlay');
+
+        overlay.style.display = 'none';
+
+        activeDeleteArticleFormId = null;
+
+    }
+
+
+    window.addEventListener('click', function (event) {
+
+        const overlay =
+            document.getElementById('deleteArticleModalOverlay');
+
+        if (event.target === overlay) {
+
+            closeDeleteArticleModal();
+
+        }
+
+    });
+
 </script>

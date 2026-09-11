@@ -59,6 +59,61 @@ class UserRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function existsByEmailExceptUser(
+        string $email,
+        int $userId
+    ): bool {
+        $stmt = $this->pdo->prepare("
+        SELECT 1
+        FROM users
+        WHERE email = ?
+        AND id != ?
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            $email,
+            $userId
+        ]);
+
+        return $stmt->fetchColumn() !== false;
+    }
+
+
+    public function updateEmail(
+        int $userId,
+        string $email
+    ): void {
+        $stmt = $this->pdo->prepare("
+        UPDATE users
+        SET email = ?
+        WHERE id = ?
+    ");
+
+        $stmt->execute([
+            $email,
+            $userId
+        ]);
+    }
+
+
+    public function updatePassword(
+        int $userId,
+        string $password
+    ): void {
+        $stmt = $this->pdo->prepare("
+        UPDATE users
+        SET password = ?
+        WHERE id = ?
+    ");
+
+        $stmt->execute([
+            $password,
+            $userId
+        ]);
+    }
+
+
     public function findById(int $id): ?User
     {
         $stmt = $this->pdo->prepare("

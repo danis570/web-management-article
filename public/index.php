@@ -64,9 +64,17 @@ Router::add(
     [UserAndAdmin::class]
 );
 
-
 Router::add('GET', '/user/search', UserController::class, 'search');
-
+Router::add('GET', '/account', UserController::class, 'account', [UserOnly::class]);
+Router::add('POST', '/account/email', UserController::class, 'postChangeEmail', [UserOnly::class]);
+Router::add('POST', '/account/password', UserController::class, 'postChangePassword', [UserOnly::class]);
+Router::add(
+    'POST',
+    '/user/reset-password',
+    UserController::class,
+    'postResetPassword',
+    [AdminOnly::class]
+);
 
 // ============================================================
 // ARTICLE

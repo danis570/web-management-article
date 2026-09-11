@@ -335,6 +335,8 @@ class ArticleController
         $data = [
             'title' => 'Article Detail',
             'current' => 'article',
+            'isLoggedIn' => $user !== null,
+            'currentUserId' => $user?->id
         ];
 
 
@@ -1528,13 +1530,46 @@ class ArticleController
 
             /*
             |--------------------------------------------------------------------------
-            | Delete
+            | Delete Images
+            |--------------------------------------------------------------------------
+            |
+            | Harus dilakukan sebelum article dihapus.
+            | Karena article_images memiliki ON DELETE CASCADE,
+            | record image akan hilang ketika article dihapus.
+            |
+            */
+
+            $images =
+                $this->articleImageService
+                    ->getByArticleId($articleId);
+
+
+            foreach ($images as $image) {
+
+                $imageId =
+                    (int) $image['id'];
+
+                if ($imageId <= 0) {
+                    continue;
+                }
+
+                $this->articleImageService
+                    ->deleteById(
+                        $imageId
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete Article
             |--------------------------------------------------------------------------
             */
 
-            $this->articleService->deleteById(
-                $articleId
-            );
+            $this->articleService
+                ->deleteById(
+                    $articleId
+                );
 
 
             header(

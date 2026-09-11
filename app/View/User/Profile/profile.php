@@ -44,7 +44,7 @@
 
                         <?php if (!empty($profile->img)) { ?>
 
-                            <img src="<?= htmlspecialchars($profile->img) ?>" alt="Profile Image" class="neo-box" style="
+                            <img src="/uploads/users/<?= htmlspecialchars($profile->img) ?>" alt="Profile Image" class="neo-box" style="
                                     width: 120px;
                                     height: 120px;
                                     object-fit: cover;

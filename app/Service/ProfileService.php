@@ -40,7 +40,7 @@ class ProfileService
                 $imgFileInfo['size']
             );
 
-            $profile->img = '/uploads/user-img/' .
+            $profile->img =
                 $this->moveUploadImg(
                     $imgFileInfo['name'],
                     $imgFileInfo['tmp_name'],
@@ -77,7 +77,7 @@ class ProfileService
                 $imgFileInfo['size']
             );
 
-            $profile->img = '/uploads/user-img/' .
+            $profile->img =
                 $this->moveUploadImg(
                     $imgFileInfo['name'],
                     $imgFileInfo['tmp_name'],
@@ -143,8 +143,8 @@ class ProfileService
             );
         }
 
-        if ((int) $imgSize > 100000) {
-            throw new Exception('Max size: 100kb');
+        if ((int) $imgSize > 1000000) {
+            throw new Exception('Max size: 1mb');
         }
     }
 
@@ -153,9 +153,11 @@ class ProfileService
         string $imgTempName,
         int|string $status
     ): string {
-        $path = __DIR__ . '/../../public/uploads/user-img/';
+        $path = __DIR__ . '/../../public/uploads/users/';
 
-        $name = uniqid() . '-' . $imgName;
+        $extension = pathinfo($imgName, PATHINFO_EXTENSION);
+        $randomHex = bin2hex(random_bytes(16));
+        $name = $randomHex . '.' . $extension;
 
         $fullPath = $path . $name;
 

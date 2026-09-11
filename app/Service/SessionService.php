@@ -64,7 +64,8 @@ class SessionService
                 'expires' => time() + self::SESSION_LIFETIME,
                 'path' => '/',
                 'httponly' => true,
-                'secure' => isset($_SERVER['HTTPS']),
+                'secure' => !empty($_SERVER['HTTPS'])
+                    && $_SERVER['HTTPS'] !== 'off',
                 'samesite' => 'Lax'
             ]
         );
@@ -147,6 +148,25 @@ class SessionService
     }
 
     /**
+     * Menghapus semua session milik user.
+     *
+     * Digunakan misalnya setelah user mengganti password,
+     * sehingga semua device harus login kembali.
+     */
+
+    public function revokeAllByUserId(int $userId): void
+    {
+        if ($userId <= 0) {
+            throw new Exception('User ID is invalid.');
+        }
+
+        // Hanya hapus semua session milik user tersebut
+        $this->sessionRepository->deleteByUserId($userId);
+    }
+
+
+
+    /**
      * Logout session yang sedang digunakan.
      */
     public function logout(): void
@@ -172,7 +192,8 @@ class SessionService
                 'expires' => time() - 3600,
                 'path' => '/',
                 'httponly' => true,
-                'secure' => isset($_SERVER['HTTPS']),
+                'secure' => !empty($_SERVER['HTTPS'])
+                    && $_SERVER['HTTPS'] !== 'off',
                 'samesite' => 'Lax'
             ]
         );

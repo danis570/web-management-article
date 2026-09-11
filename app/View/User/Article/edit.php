@@ -162,27 +162,181 @@
 
 
     /* ========================================================
-       NEW IMAGE PREVIEW
-    ======================================================== */
+   NEW IMAGE PREVIEW
+======================================================== */
 
     #imagePreview {
         display: grid;
         grid-template-columns: repeat(auto-fill,
-                minmax(140px, 1fr));
+                minmax(180px, 1fr));
         gap: 15px;
     }
 
+
+    /* ========================================================
+   NEW IMAGE CARD
+======================================================== */
+
     .new-image-card {
         position: relative;
+
+        padding: 10px;
+
+        background: #ffffff;
+
+        border: 2px solid var(--dark);
+
+        border-radius: 8px;
+
+        box-sizing: border-box;
+
+        box-shadow: 3px 3px 0 var(--dark);
     }
+
+
+    /* ========================================================
+   IMAGE
+======================================================== */
+
+    .new-image-card-image {
+        position: relative;
+
+        width: 100%;
+
+        height: 160px;
+
+        overflow: hidden;
+
+        border-radius: 6px;
+    }
+
 
     .new-image-card img {
         width: 100%;
-        height: 120px;
+
+        height: 100%;
+
         object-fit: cover;
-        border-radius: 8px;
+
         display: block;
     }
+
+
+    /* ========================================================
+   DELETE BUTTON
+======================================================== */
+
+    .new-image-delete {
+        position: absolute;
+
+        top: 6px;
+        right: 6px;
+
+        width: 32px;
+        height: 32px;
+
+        padding: 0;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        background-color: var(--yellow-light);
+
+        color: var(--dark);
+
+        border: 2px solid var(--dark);
+
+        box-shadow: 3px 3px 0 var(--dark);
+
+        border-radius: 4px;
+
+        font-size: 22px;
+
+        font-weight: 900;
+
+        line-height: 1;
+
+        cursor: pointer;
+
+        z-index: 10;
+
+        transition: all 0.1s ease;
+    }
+
+
+    .new-image-delete:hover {
+        background-color: #ff4d4d;
+
+        color: #ffffff;
+
+        transform: translate(-1px, -1px);
+
+        box-shadow: 4px 4px 0 var(--dark);
+    }
+
+
+    .new-image-delete:active {
+        transform: translate(3px, 3px);
+
+        box-shadow: 0 0 0 var(--dark);
+    }
+
+
+    /* ========================================================
+   FILE NAME
+======================================================== */
+
+    .new-image-filename {
+        margin: 8px 0 6px;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        color: var(--dark);
+
+        word-break: break-word;
+    }
+
+
+    /* ========================================================
+   CAPTION
+======================================================== */
+
+    .new-image-caption {
+        width: 100%;
+
+        padding: 8px;
+
+        box-sizing: border-box;
+
+        border: 1px solid #ddd;
+
+        border-radius: 6px;
+
+        font-family: inherit;
+    }
+
+
+    /* ========================================================
+   MOBILE
+======================================================== */
+
+    @media (max-width: 480px) {
+
+        #imagePreview {
+            grid-template-columns: 1fr;
+        }
+
+        .new-image-card-image {
+            height: 180px;
+        }
+
+    }
+
 
     .user-owner-badge {
         display: inline-block;
@@ -1344,10 +1498,10 @@
 
 
     /*
-    |--------------------------------------------------------------------------
-    | NEW IMAGE PREVIEW
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| NEW IMAGE PREVIEW
+|--------------------------------------------------------------------------
+*/
 
     const imageInput =
         document.getElementById('images');
@@ -1356,42 +1510,102 @@
         document.getElementById('imagePreview');
 
 
-    const dataTransfer =
+    /*
+    |--------------------------------------------------------------------------
+    | DATA TRANSFER
+    |--------------------------------------------------------------------------
+    |
+    | Digunakan untuk mengontrol file yang benar-benar
+    | akan dikirim oleh input[type=file].
+    |
+    */
+
+    let dataTransfer =
         new DataTransfer();
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | FILE KEY
+    |--------------------------------------------------------------------------
+    |
+    | Membuat ID unik berdasarkan file.
+    |
+    */
+
+    function getFileKey(file) {
+
+        return [
+            file.name,
+            file.size,
+            file.lastModified
+        ].join('_');
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | IMAGE INPUT CHANGE
+    |--------------------------------------------------------------------------
+    */
 
     imageInput.addEventListener(
         'change',
         function () {
 
             /*
+            |--------------------------------------------------------------------------
             | Tambahkan file baru
+            |--------------------------------------------------------------------------
             */
 
             for (const file of this.files) {
 
+                /*
+                |--------------------------------------------------------------------------
+                | Pastikan file adalah gambar
+                |--------------------------------------------------------------------------
+                */
+
+                if (!file.type.startsWith('image/')) {
+
+                    continue;
+
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Cek duplicate
+                |--------------------------------------------------------------------------
+                */
+
                 const alreadyExists =
                     Array.from(
                         dataTransfer.files
-                    ).some(
-                        existingFile =>
+                    ).some(existingFile => {
 
-                            existingFile.name ===
-                            file.name &&
+                        return (
+                            existingFile.name === file.name
+                            &&
+                            existingFile.size === file.size
+                            &&
+                            existingFile.lastModified === file.lastModified
+                        );
 
-                            existingFile.size ===
-                            file.size &&
+                    });
 
-                            existingFile.lastModified ===
-                            file.lastModified
-                    );
 
+                /*
+                |--------------------------------------------------------------------------
+                | Tambahkan jika belum ada
+                |--------------------------------------------------------------------------
+                */
 
                 if (!alreadyExists) {
 
-                    dataTransfer.items.add(
-                        file
-                    );
+                    dataTransfer.items.add(file);
 
                 }
 
@@ -1399,12 +1613,20 @@
 
 
             /*
-            | Masukkan kembali semua file
+            |--------------------------------------------------------------------------
+            | Update input
+            |--------------------------------------------------------------------------
             */
 
             imageInput.files =
                 dataTransfer.files;
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | Render
+            |--------------------------------------------------------------------------
+            */
 
             renderPreview();
 
@@ -1414,19 +1636,83 @@
 
     /*
     |--------------------------------------------------------------------------
-    | RENDER NEW IMAGE PREVIEW
+    | RENDER PREVIEW
     |--------------------------------------------------------------------------
     */
 
     function renderPreview() {
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan caption yang sudah ditulis
+        |--------------------------------------------------------------------------
+        |
+        | Supaya ketika user menghapus gambar lain,
+        | caption gambar yang masih ada tidak hilang.
+        |
+        */
+
+        const captions = {};
+
+
+        document
+            .querySelectorAll('.new-image-caption')
+            .forEach(input => {
+
+                const fileKey =
+                    input.dataset.fileKey;
+
+
+                if (fileKey) {
+
+                    captions[fileKey] =
+                        input.value;
+
+                }
+
+            });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Bersihkan preview
+        |--------------------------------------------------------------------------
+        */
+
         imagePreview.innerHTML = '';
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tidak ada file
+        |--------------------------------------------------------------------------
+        */
+
+        if (dataTransfer.files.length === 0) {
+
+            return;
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Render semua file
+        |--------------------------------------------------------------------------
+        */
 
         Array.from(
             dataTransfer.files
         ).forEach(
             (file, index) => {
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Pastikan image
+                |--------------------------------------------------------------------------
+                */
 
                 if (!file.type.startsWith('image/')) {
 
@@ -1435,6 +1721,170 @@
                 }
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | File key
+                |--------------------------------------------------------------------------
+                */
+
+                const fileKey =
+                    getFileKey(file);
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Card
+                |--------------------------------------------------------------------------
+                */
+
+                const card =
+                    document.createElement('div');
+
+
+                card.className =
+                    'new-image-card';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | IMAGE CONTAINER
+                |--------------------------------------------------------------------------
+                */
+
+                const imageContainer =
+                    document.createElement('div');
+
+
+                imageContainer.className =
+                    'new-image-card-image';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | IMAGE
+                |--------------------------------------------------------------------------
+                */
+
+                const img =
+                    document.createElement('img');
+
+
+                img.alt =
+                    file.name;
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | DELETE BUTTON
+                |--------------------------------------------------------------------------
+                */
+
+                const deleteButton =
+                    document.createElement('button');
+
+
+                deleteButton.type =
+                    'button';
+
+
+                deleteButton.className =
+                    'new-image-delete';
+
+
+                deleteButton.innerHTML =
+                    '×';
+
+
+                deleteButton.title =
+                    'Hapus gambar';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | DELETE EVENT
+                |--------------------------------------------------------------------------
+                */
+
+                deleteButton.addEventListener(
+                    'click',
+                    function () {
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Buat DataTransfer baru
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const newDataTransfer =
+                            new DataTransfer();
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Masukkan semua file kecuali
+                        | file yang sedang dihapus
+                        |--------------------------------------------------------------------------
+                        */
+
+                        Array.from(
+                            dataTransfer.files
+                        ).forEach(
+                            (currentFile, currentIndex) => {
+
+
+                                if (
+                                    currentIndex !== index
+                                ) {
+
+                                    newDataTransfer.items.add(
+                                        currentFile
+                                    );
+
+                                }
+
+                            }
+                        );
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Ganti DataTransfer
+                        |--------------------------------------------------------------------------
+                        */
+
+                        dataTransfer =
+                            newDataTransfer;
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Update input file
+                        |--------------------------------------------------------------------------
+                        */
+
+                        imageInput.files =
+                            dataTransfer.files;
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Render ulang
+                        |--------------------------------------------------------------------------
+                        */
+
+                        renderPreview();
+
+                    }
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | FILE READER
+                |--------------------------------------------------------------------------
+                */
+
                 const reader =
                     new FileReader();
 
@@ -1442,55 +1892,125 @@
                 reader.onload =
                     function (event) {
 
-                        const wrapper =
-                            document.createElement('div');
-
-
-                        wrapper.className =
-                            'new-image-card';
-
-
-                        wrapper.innerHTML = `
-
-                            <img
-                                src="${event.target.result}"
-                                alt="${escapeHtml(file.name)}"
-                            >
-
-
-                            <p style="
-                                margin-top: 5px;
-                                font-size: 13px;
-                                word-break: break-word;
-                            ">
-                                ${escapeHtml(file.name)}
-                            </p>
-
-
-                            <input
-                                type="text"
-                                name="captions[]"
-                                placeholder="Caption gambar..."
-                                style="
-                                    width: 100%;
-                                    padding: 8px;
-                                    border: 1px solid #ddd;
-                                    border-radius: 6px;
-                                    box-sizing: border-box;
-                                "
-                            >
-
-                        `;
-
-
-                        imagePreview.appendChild(
-                            wrapper
-                        );
+                        img.src =
+                            event.target.result;
 
                     };
 
 
                 reader.readAsDataURL(file);
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Susun image
+                |--------------------------------------------------------------------------
+                */
+
+                imageContainer.appendChild(img);
+
+                imageContainer.appendChild(
+                    deleteButton
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | FILE NAME
+                |--------------------------------------------------------------------------
+                */
+
+                const fileName =
+                    document.createElement('p');
+
+
+                fileName.className =
+                    'new-image-filename';
+
+
+                fileName.textContent =
+                    file.name;
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | CAPTION
+                |--------------------------------------------------------------------------
+                */
+
+                const captionInput =
+                    document.createElement('input');
+
+
+                captionInput.type =
+                    'text';
+
+
+                captionInput.name =
+                    'captions[]';
+
+
+                captionInput.className =
+                    'new-image-caption';
+
+
+                captionInput.dataset.fileKey =
+                    fileKey;
+
+
+                captionInput.placeholder =
+                    'Caption gambar...';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Restore caption
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    Object.prototype.hasOwnProperty.call(
+                        captions,
+                        fileKey
+                    )
+                ) {
+
+                    captionInput.value =
+                        captions[fileKey];
+
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Masukkan ke card
+                |--------------------------------------------------------------------------
+                */
+
+                card.appendChild(
+                    imageContainer
+                );
+
+
+                card.appendChild(
+                    fileName
+                );
+
+
+                card.appendChild(
+                    captionInput
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Masukkan ke preview
+                |--------------------------------------------------------------------------
+                */
+
+                imagePreview.appendChild(
+                    card
+                );
 
             }
         );

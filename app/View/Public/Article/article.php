@@ -10,23 +10,32 @@
 
                     <h3>
                         <span id="article-title-prefix">Semua</span>
+
                         <span class="highlight highlight-yellow" id="article-title">
                             <?= htmlspecialchars($model['title'] ?? 'Artikel') ?>
                         </span>
                     </h3>
+
                     <script>
                         const hash = window.location.hash;
 
-                        const prefix = document.getElementById('article-title-prefix');
-                        const title = document.getElementById('article-title');
+                        const prefix =
+                            document.getElementById('article-title-prefix');
+
+                        const title =
+                            document.getElementById('article-title');
 
                         if (hash) {
-                            const tagName = decodeURIComponent(hash.substring(1));
+
+                            const tagName =
+                                decodeURIComponent(hash.substring(1));
 
                             prefix.textContent = 'Article';
+
                             title.textContent = `#${tagName}`;
                         }
                     </script>
+
 
                     <div class="search-container" style="display: flex; align-items: center; gap: 1rem;">
 
@@ -47,6 +56,10 @@
     </div>
 
 
+    <!-- =====================================================
+         ARTICLE LIST
+    ====================================================== -->
+
     <div class="container" style="margin-top: 3.5rem;">
 
         <div class="component-example">
@@ -55,57 +68,82 @@
 
                 <div class="grid grid-cols-4 gap-grid-md mt-md" id="article-list" style="align-items: start;">
 
+
                     <?php foreach ($model['article'] as $article): ?>
 
-
                         <a href="/article/<?= htmlspecialchars($article['slug']) ?>" class="neo-card article-card">
+
+
+                            <!-- =====================================================
+                                 IMAGE
+                            ====================================================== -->
 
                             <?php if (!empty($article['image'])): ?>
 
                                 <div class="article-image">
+
                                     <img src="/uploads/articles/<?= htmlspecialchars($article['image']) ?>"
                                         alt="<?= htmlspecialchars($article['title']) ?>" loading="lazy">
+
                                 </div>
 
                             <?php endif; ?>
 
 
-                            <!-- ========================= JUDUL ========================== -->
+                            <!-- =====================================================
+                                 ARTICLE CONTENT
+                            ====================================================== -->
 
-                            <div class="article-header-box">
-
-                                <h4 class="article-title">
-                                    <?= htmlspecialchars($article['title']) ?>
-                                </h4>
-
-                            </div>
+                            <div class="article-content">
 
 
-                            <!-- ========================= PENULIS & TANGGAL ========================== -->
+                                <!-- =========================
+                                     JUDUL
+                                ========================== -->
 
-                            <div class="article-author-info">
+                                <div class="article-header-box">
 
-                                <span class="article-author-name">
+                                    <h4 class="article-title">
 
-                                    <?= htmlspecialchars(
-                                        $article['authors'] ?? 'Unknown Author'
-                                    ) ?>
+                                        <?= htmlspecialchars(
+                                            $article['title']
+                                        ) ?>
 
-                                </span>
+                                    </h4>
+
+                                </div>
 
 
-                                <?php if (!empty($article['created_at'])): ?>
+                                <!-- =========================
+                                     AUTHOR & DATE
+                                ========================== -->
 
-                                    <span class="article-date">
+                                <div class="article-author-info">
 
-                                        <?= date(
-                                            'd M Y',
-                                            strtotime($article['created_at'])
+                                    <span class="article-author-name">
+
+                                        <?= htmlspecialchars(
+                                            $article['authors']
+                                            ?? 'Unknown Author'
                                         ) ?>
 
                                     </span>
 
-                                <?php endif; ?>
+
+                                    <?php if (!empty($article['created_at'])): ?>
+
+                                        <span class="article-date">
+
+                                            <?= date(
+                                                'd M Y',
+                                                strtotime($article['created_at'])
+                                            ) ?>
+
+                                        </span>
+
+                                    <?php endif; ?>
+
+                                </div>
 
                             </div>
 
@@ -116,7 +154,9 @@
                 </div>
 
 
-                <!-- Tidak ditemukan -->
+                <!-- =====================================================
+                     NO RESULT
+                ====================================================== -->
 
                 <div id="no-result" style="display: none;" class="text-center mt-md">
 
@@ -126,15 +166,18 @@
 
                 </div>
 
+
             <?php else: ?>
 
                 <div class="text-center mt-md">
 
                     <p>
+
                         <?= htmlspecialchars(
                             $model['emptyArticle']
                             ?? 'Belum ada artikel yang diterbitkan.'
                         ) ?>
+
                     </p>
 
                 </div>
@@ -149,6 +192,10 @@
 
 
 <style>
+    /* =========================================================
+   ARTICLE LIST
+========================================================= */
+
     #article-list {
         row-gap: 1.5rem !important;
     }
@@ -157,16 +204,24 @@
         margin-bottom: 1.5rem;
     }
 
-    /* =========================================
-       ARTICLE CARD
-    ========================================= */
+
+    /* =========================================================
+   ARTICLE CARD
+========================================================= */
 
     .neo-card.article-card {
 
         display: flex;
+
         flex-direction: column;
 
-        padding: 1.5rem;
+        /*
+    IMPORTANT:
+    Padding jangan diletakkan di card.
+    Karena image harus full width.
+    */
+
+        padding: 0;
 
         height: auto;
 
@@ -178,14 +233,96 @@
 
         color: inherit;
 
-        transition: all 0.3s ease;
+        overflow: hidden;
+
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
 
     }
 
 
-    /* =========================================
-       TITLE
-    ========================================= */
+    /* =========================================================
+   IMAGE CONTAINER
+========================================================= */
+
+    .article-card .article-image {
+
+        width: 100%;
+
+        /*
+    Rasio gambar seperti screenshot.
+    */
+
+        aspect-ratio: 16 / 9;
+
+        overflow: hidden;
+
+        flex-shrink: 0;
+
+        margin: 0;
+
+        padding: 0;
+
+    }
+
+
+    /* =========================================================
+   IMAGE
+========================================================= */
+
+    .article-card .article-image img {
+
+        display: block;
+
+        width: 100%;
+
+        height: 100%;
+
+        margin: 0;
+
+        padding: 0;
+
+        border: 0;
+
+        object-fit: cover;
+
+        object-position: center;
+
+    }
+
+
+    /* =========================================================
+   ARTICLE CONTENT
+========================================================= */
+
+    .article-card .article-content {
+
+        /*
+    Jarak antara gambar dan teks.
+    */
+
+        padding-top: 20px;
+
+    }
+
+
+    /* =========================================================
+   TITLE BOX
+========================================================= */
+
+    .article-card .article-header-box {
+
+        padding-left: 1.5rem;
+
+        padding-right: 1.5rem;
+
+    }
+
+
+    /* =========================================================
+   TITLE
+========================================================= */
 
     .article-card .article-title {
 
@@ -201,84 +338,63 @@
 
     }
 
-    .article-author-info {
+
+    /* =========================================================
+   AUTHOR INFO
+========================================================= */
+
+    .article-card .article-author-info {
+
         margin-top: 1rem;
+
+        padding-left: 1.5rem;
+
+        padding-right: 1.5rem;
+
+        padding-bottom: 1.5rem;
+
         display: flex;
+
         flex-direction: column;
+
         gap: 0.25rem;
-    }
-
-
-    /* =========================================
-       CONTENT
-    ========================================= */
-
-    .article-card .article-body {
-
-        margin-top: 0.5rem;
-
-        margin-bottom: 0.75rem;
 
     }
 
 
-    .article-card .article-text {
+    /* =========================================================
+   AUTHOR
+========================================================= */
+
+    .article-card .article-author-name {
 
         margin: 0;
 
-        font-size: 0.9rem;
-
-        color: #444444;
-
-        line-height: 1.5;
-
-    }
-
-
-    /* =========================================
-       DETAILS
-    ========================================= */
-
-    .article-card .article-details {
-
-        border-top: 2px dashed var(--dark);
-
-        padding-top: 0.75rem;
-
-        margin-top: auto;
-
-    }
-
-
-    .article-card .article-author {
-
-        margin: 0;
-
-        font-size: 0.85rem;
-
-        font-weight: 700;
+        font-size: 0.95rem;
 
         color: var(--dark);
 
     }
 
 
-    .article-card .article-users {
+    /* =========================================================
+   DATE
+========================================================= */
 
-        margin: 0.35rem 0 0;
+    .article-card .article-date {
 
-        font-size: 0.85rem;
+        margin: 0;
 
-        line-height: 1.4;
+        font-size: 0.95rem;
 
-        color: #555555;
+        color: var(--dark);
 
     }
 
 
-    /* =========================================
-       HOVER
-    ========================================= */
+    /* =========================================================
+   HOVER
+========================================================= */
 
     .neo-card.article-card:hover {
 
@@ -289,9 +405,9 @@
     }
 
 
-    /* =========================================
-       SEARCH
-    ========================================= */
+    /* =========================================================
+   SEARCH / HIDDEN
+========================================================= */
 
     .article-card.is-hidden {
 
@@ -306,22 +422,57 @@
     }
 
 
-    #article-list {
-
-        row-gap: 1.5rem !important;
-
-    }
-
-
-    /* =========================================
-       MOBILE
-    ========================================= */
+    /* =========================================================
+   MOBILE
+========================================================= */
 
     @media (max-width: 768px) {
 
         #article-list {
 
             grid-template-columns: 1fr !important;
+
+        }
+
+
+        .article-card .article-image {
+
+            aspect-ratio: 16 / 9;
+
+        }
+
+    }
+
+
+    /* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+    @media (max-width: 480px) {
+
+        .article-card .article-title {
+
+            font-size: 1.1rem;
+
+        }
+
+
+        .article-card .article-header-box {
+
+            padding-left: 1.25rem;
+
+            padding-right: 1.25rem;
+
+        }
+
+
+        .article-card .article-author-info {
+
+            padding-left: 1.25rem;
+
+            padding-right: 1.25rem;
+
+            padding-bottom: 1.25rem;
 
         }
 
@@ -332,6 +483,11 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function () {
+
+
+        /* =====================================================
+           ELEMENT
+        ====================================================== */
 
         const searchInput =
             document.getElementById('article-search');
@@ -347,166 +503,272 @@
 
 
         if (!articleList) {
+
             return;
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Simpan artikel default
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           SIMPAN ARTICLE DEFAULT
+        ====================================================== */
 
         const defaultArticleList =
             articleList.innerHTML;
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Escape HTML
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           ESCAPE HTML
+        ====================================================== */
 
         function escapeHtml(value) {
 
-            const div = document.createElement('div');
+            const div =
+                document.createElement('div');
 
-            div.textContent = value ?? '';
+            div.textContent =
+                value ?? '';
 
             return div.innerHTML;
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Render artikel
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           RENDER ARTICLES
+        ====================================================== */
 
         function renderArticles(articles) {
 
+
             articleList.innerHTML = '';
+
+
+            /* =================================================
+               TIDAK ADA ARTIKEL
+            ================================================= */
 
             if (!articles || articles.length === 0) {
 
                 articleList.innerHTML = `
+
                 <div class="text-center">
-                    <p>Artikel dengan tag ini tidak ditemukan.</p>
+
+                    <p>
+                        Artikel dengan tag ini tidak ditemukan.
+                    </p>
+
                 </div>
+
             `;
 
+
                 if (noResult) {
-                    noResult.style.display = 'none';
+
+                    noResult.style.display =
+                        'none';
+
                 }
 
                 return;
+
             }
 
 
+            /* =================================================
+               LOOP ARTICLES
+            ================================================= */
+
             articles.forEach(article => {
+
 
                 const articleElement =
                     document.createElement('a');
 
+
+                /* =============================================
+                   URL
+                ============================================== */
+
                 articleElement.href =
                     `/article/${encodeURIComponent(article.slug)}`;
+
 
                 articleElement.className =
                     'neo-card article-card';
 
 
+                /* =============================================
+                   IMAGE
+                ============================================== */
+
                 let imageHtml = '';
+
 
                 if (article.image) {
 
                     imageHtml = `
+
                     <div class="article-image">
+
                         <img
                             src="/uploads/articles/${escapeHtml(article.image)}"
                             alt="${escapeHtml(article.title)}"
                             loading="lazy"
                         >
+
                     </div>
+
                 `;
+
                 }
 
 
-                const author =
-                    article.authors ?? 'Unknown Author';
+                /* =============================================
+                   AUTHOR
+                ============================================== */
 
+                const author =
+                    article.authors ??
+                    'Unknown Author';
+
+
+                /* =============================================
+                   DATE
+                ============================================== */
 
                 let dateHtml = '';
 
+
                 if (article.created_at) {
+
 
                     const date =
                         new Date(article.created_at);
 
+
                     dateHtml = `
+
                     <span class="article-date">
-                        ${date.toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                    })}
+
+                        ${date.toLocaleDateString(
+                        'id-ID',
+                        {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                        }
+                    )}
+
                     </span>
+
                 `;
+
                 }
 
 
+                /* =============================================
+                   CARD HTML
+                ============================================== */
+
                 articleElement.innerHTML = `
+
 
                 ${imageHtml}
 
-                <div class="article-header-box">
 
-                    <h4 class="article-title">
-                        ${escapeHtml(article.title)}
-                    </h4>
-
-                </div>
+                <div class="article-content">
 
 
-                <div class="article-author-info">
+                    <!-- TITLE -->
 
-                    <span class="article-author-name">
-                        ${escapeHtml(author)}
-                    </span>
+                    <div class="article-header-box">
 
-                    ${dateHtml}
+                        <h4 class="article-title">
+
+                            ${escapeHtml(
+                    article.title
+                )}
+
+                        </h4>
+
+                    </div>
+
+
+                    <!-- AUTHOR -->
+
+                    <div class="article-author-info">
+
+                        <span class="article-author-name">
+
+                            ${escapeHtml(
+                    author
+                )}
+
+                        </span>
+
+
+                        ${dateHtml}
+
+                    </div>
+
 
                 </div>
 
             `;
 
 
-                articleList.appendChild(articleElement);
+                /* =============================================
+                   APPEND
+                ============================================== */
+
+                articleList.appendChild(
+                    articleElement
+                );
 
             });
 
 
             if (noResult) {
-                noResult.style.display = 'none';
+
+                noResult.style.display =
+                    'none';
+
             }
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Load artikel berdasarkan tag
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           LOAD ARTICLE BERDASARKAN TAG
+        ====================================================== */
 
         async function loadTag(tagSlug) {
 
+
             try {
 
+
+                /* =============================================
+                   LOADING
+                ============================================== */
+
                 articleList.innerHTML = `
+
                 <div class="text-center">
-                    <p>Memuat artikel...</p>
+
+                    <p>
+                        Memuat artikel...
+                    </p>
+
                 </div>
+
             `;
 
+
+                /* =============================================
+                   FETCH
+                ============================================== */
 
                 const response =
                     await fetch(
@@ -514,63 +776,82 @@
                     );
 
 
+                /* =============================================
+                   JSON
+                ============================================== */
+
                 const data =
                     await response.json();
 
 
+                /* =============================================
+                   CHECK RESPONSE
+                ============================================== */
+
                 if (!data.success) {
 
                     throw new Error(
-                        data.message || 'Gagal mengambil artikel.'
+                        data.message
+                        || 'Gagal mengambil artikel.'
                     );
+
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Ubah judul
-                |--------------------------------------------------------------------------
-                */
+                /* =============================================
+                   UBAH JUDUL
+                ============================================== */
 
                 if (titleElement) {
 
                     titleElement.textContent =
                         data.tag.name;
+
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | Tampilkan artikel
-                |--------------------------------------------------------------------------
-                */
+                /* =============================================
+                   RENDER
+                ============================================== */
 
-                renderArticles(data.articles);
+                renderArticles(
+                    data.articles
+                );
 
 
             } catch (error) {
+
 
                 console.error(error);
 
 
                 articleList.innerHTML = `
+
                 <div class="text-center">
+
                     <p>
-                        ${escapeHtml(error.message)}
+
+                        ${escapeHtml(
+                    error.message
+                )}
+
                     </p>
+
                 </div>
+
             `;
+
             }
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Reset ke semua artikel
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           RESET KE SEMUA ARTIKEL
+        ====================================================== */
 
         function loadAllArticles() {
+
 
             articleList.innerHTML =
                 defaultArticleList;
@@ -579,50 +860,54 @@
             if (titleElement) {
 
                 titleElement.textContent =
-                    <?= json_encode($model['title'] ?? 'Artikel') ?>;
+                    <?= json_encode(
+                        $model['title']
+                        ?? 'Artikel'
+                    ) ?>;
+
             }
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | Aktifkan kembali search
-            |--------------------------------------------------------------------------
-            */
+            /* =============================================
+               RESET SEARCH
+            ============================================== */
 
             if (searchInput) {
 
                 searchInput.value = '';
+
             }
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cek hash URL
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           HANDLE HASH
+        ====================================================== */
 
         function handleHash() {
+
 
             const hash =
                 window.location.hash;
 
 
-            /*
-            | Tidak ada tag
-            */
+            /* =============================================
+               TIDAK ADA HASH
+            ============================================== */
 
             if (!hash) {
 
                 loadAllArticles();
 
                 return;
+
             }
 
 
-            /*
-            | Buang #
-            */
+            /* =============================================
+               AMBIL SLUG
+            ============================================== */
 
             const tagSlug =
                 decodeURIComponent(
@@ -630,32 +915,39 @@
                 ).trim();
 
 
+            /* =============================================
+               HASH KOSONG
+            ============================================== */
+
             if (!tagSlug) {
 
                 loadAllArticles();
 
                 return;
+
             }
 
 
-            /*
-            | Ambil artikel berdasarkan tag
-            */
+            /* =============================================
+               LOAD TAG
+            ============================================== */
 
             loadTag(tagSlug);
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Search artikel
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           SEARCH
+        ====================================================== */
 
         function setupSearch() {
 
+
             if (!searchInput) {
+
                 return;
+
             }
 
 
@@ -663,8 +955,11 @@
                 'input',
                 function () {
 
+
                     const keyword =
-                        this.value.toLowerCase().trim();
+                        this.value
+                            .toLowerCase()
+                            .trim();
 
 
                     const articles =
@@ -673,67 +968,85 @@
                         );
 
 
-                    let found = false;
+                    let found =
+                        false;
 
+
+                    /* =========================================
+                       FILTER
+                    ========================================== */
 
                     articles.forEach(article => {
 
+
                         const fullText =
-                            article.textContent.toLowerCase();
+                            article.textContent
+                                .toLowerCase();
 
 
                         if (
                             fullText.includes(keyword)
                         ) {
 
+
                             article.classList.remove(
                                 'is-hidden'
                             );
 
-                            found = true;
+
+                            found =
+                                true;
+
 
                         } else {
+
 
                             article.classList.add(
                                 'is-hidden'
                             );
+
                         }
 
                     });
 
 
+                    /* =========================================
+                       NO RESULT
+                    ========================================== */
+
                     if (noResult) {
 
                         noResult.style.display =
-                            found ? 'none' : 'block';
+                            found
+                                ? 'none'
+                                : 'block';
+
                     }
 
                 }
             );
+
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Jalankan
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           INITIALIZE
+        ====================================================== */
 
         setupSearch();
 
         handleHash();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Kalau hash berubah
-        |--------------------------------------------------------------------------
-        */
+        /* =====================================================
+           HASH CHANGE
+        ====================================================== */
 
         window.addEventListener(
             'hashchange',
             handleHash
         );
+
 
     });
 

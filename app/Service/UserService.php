@@ -89,6 +89,169 @@ class UserService
         }
     }
 
+    public function resetPasswordByAdmin(int $userId): void
+    {
+        if ($userId <= 0) {
+            throw new Exception('User ID is invalid');
+        }
+
+        $user = $this->userRepository->findById($userId);
+
+        if ($user === null) {
+            throw new Exception('User not found');
+        }
+
+        $defaultPassword = 'pripnuippnudesaketambul';
+
+        $hashedPassword = password_hash(
+            $defaultPassword,
+            PASSWORD_DEFAULT
+        );
+
+        if ($hashedPassword === false) {
+            throw new Exception('Failed to hash password');
+        }
+
+        $this->userRepository->updatePassword(
+            $userId,
+            $hashedPassword
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHANGE EMAIL
+    |--------------------------------------------------------------------------
+    */
+
+    public function changeEmail(
+        int $userId,
+        string $email
+    ): void {
+        if ($userId <= 0) {
+            throw new Exception(
+                'User ID is invalid'
+            );
+        }
+
+        $email = trim($email);
+
+        if ($email === '') {
+            throw new Exception(
+                'Email cannot be blank'
+            );
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception(
+                'Email not valid'
+            );
+        }
+
+        $emailExists = $this->userRepository
+            ->existsByEmailExceptUser(
+                $email,
+                $userId
+            );
+
+        if ($emailExists) {
+            throw new Exception(
+                'Email already exists'
+            );
+        }
+
+        $this->userRepository->updateEmail(
+            $userId,
+            $email
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHANGE PASSWORD
+    |--------------------------------------------------------------------------
+    */
+
+    public function changePassword(
+        int $userId,
+        string $currentPassword,
+        string $newPassword
+    ): void {
+        if ($userId <= 0) {
+            throw new Exception(
+                'User ID is invalid'
+            );
+        }
+
+        if ($currentPassword === '') {
+            throw new Exception(
+                'Current password cannot be blank'
+            );
+        }
+
+        if ($newPassword === '') {
+            throw new Exception(
+                'New password cannot be blank'
+            );
+        }
+
+        if (strlen($newPassword) < 8) {
+            throw new Exception(
+                'New password must be at least 8 characters'
+            );
+        }
+
+        $user = $this->userRepository->findById(
+            $userId
+        );
+
+        if ($user === null) {
+            throw new Exception(
+                'User not found'
+            );
+        }
+
+        if (
+            !password_verify(
+                $currentPassword,
+                $user->password
+            )
+        ) {
+            throw new Exception(
+                'Current password is wrong'
+            );
+        }
+
+        if (
+            password_verify(
+                $newPassword,
+                $user->password
+            )
+        ) {
+            throw new Exception(
+                'New password must be different from current password'
+            );
+        }
+
+        $hashedPassword = password_hash(
+            $newPassword,
+            PASSWORD_DEFAULT
+        );
+
+        if ($hashedPassword === false) {
+            throw new Exception(
+                'Failed to hash password'
+            );
+        }
+
+        $this->userRepository->updatePassword(
+            $userId,
+            $hashedPassword
+        );
+    }
+
 
     /*
     |--------------------------------------------------------------------------

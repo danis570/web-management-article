@@ -110,6 +110,10 @@ class RegistrationService
             );
         }
 
+        if (strlen($request->password) < 8) {
+            throw new Exception('Password must be at least 8 characters');
+        }
+
         $existingUser = $this->userRepository->findByEmail(
             $request->email
         );

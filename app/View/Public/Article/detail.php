@@ -128,7 +128,7 @@
 
                                         <?php if (!empty($authorImages[$index])): ?>
 
-                                            <img src="<?= htmlspecialchars($authorImages[$index]) ?>"
+                                            <img src="/uploads/users/<?= htmlspecialchars($authorImages[$index]) ?>"
                                                 alt="<?= htmlspecialchars($author) ?>" class="author-avatar">
 
                                         <?php else: ?>
@@ -298,7 +298,7 @@
 
 
                 <!-- Form Komentar -->
-                <?php if (($_SESSION['login'] ?? false) === true): ?>
+                <?php if ($model['isLoggedIn'] ?? false): ?>
 
                     <form action="/comment/create" method="POST" class="comment-form">
 
@@ -353,7 +353,7 @@
                                 <!-- User -->
                                 <div class="comment-user">
                                     <?php if (!empty($comment['img'])): ?>
-                                        <img src="<?= htmlspecialchars($comment['img']) ?>"
+                                        <img src="/uploads/users/<?= htmlspecialchars($comment['img']) ?>"
                                             alt="<?= htmlspecialchars($comment['name']) ?>" class="comment-avatar">
                                     <?php else: ?>
                                         <div class="comment-avatar comment-avatar-placeholder">
@@ -389,7 +389,7 @@
                                 <!-- Actions -->
                                 <div class="comment-actions">
 
-                                    <?php if (($_SESSION['login'] ?? false) === true): ?>
+                                    <?php if ($model['isLoggedIn'] ?? false): ?>
 
                                         <?php if (!empty($comment['is_liked'])): ?>
 
@@ -420,7 +420,7 @@
 
                                         <?php if (
                                             (int) $comment['user_id']
-                                            === (int) $_SESSION['user_id']
+                                            === (int) ($model['currentUserId'] ?? 0)
                                         ): ?>
 
                                             <form action="/comment/delete" method="POST">
@@ -450,7 +450,7 @@
                                 </div>
 
                                 <!-- Reply Form -->
-                                <?php if (($_SESSION['login'] ?? false) === true): ?>
+                                <?php if ($model['isLoggedIn'] ?? false): ?>
 
                                     <form action="/comment/create" method="POST" class="reply-form"
                                         id="reply-form-<?= (int) $comment['id'] ?>" style="display: none;">
@@ -952,16 +952,23 @@
 
 
     /* =========================
-       ARTICLE BODY
-    ========================= */
+   ARTICLE BODY
+========================= */
 
     .article-body {
         font-size: 1.1rem;
         line-height: 1.8;
     }
 
+    /* Tambahkan block ini untuk memaksa paragraf full ke kanan */
     .article-body p {
         margin-bottom: 20px;
+        width: 100% !important;
+        /* !important memaksa menimpa inline style dari Text Editor */
+        max-width: 100% !important;
+        /* Menghilangkan batasan lebar maksimal */
+        text-align: justify;
+        /* Membuat teks rata kanan-kiri sehingga terlihat penuh */
     }
 
     .article-body img {

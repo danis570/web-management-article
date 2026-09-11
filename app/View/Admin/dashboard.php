@@ -5,7 +5,7 @@
             <div class="hero-text">
                 <div class="article-header">
                     <h3>
-                        Welcome back<span class="highlight highlight-yellow">Administrator</span>
+                        Welcome back <span class="highlight highlight-yellow">Administrator</span>
                     </h3>
                 </div>
             </div>
