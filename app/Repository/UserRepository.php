@@ -59,6 +59,41 @@ class UserRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findById(int $id): ?User
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT
+            id,
+            role,
+            email,
+            password
+
+        FROM users
+
+        WHERE id = ?
+
+        LIMIT 1
+    ");
+
+        $stmt->execute([$id]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result === false) {
+            return null;
+        }
+
+        $user = new User();
+
+        $user->id = (int) $result['id'];
+        $user->role = UserRole::from($result['role']);
+        $user->email = $result['email'];
+        $user->password = $result['password'];
+
+        return $user;
+    }
+
+
     public function search(
         string $keyword,
         int $excludeUserId,

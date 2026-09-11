@@ -6,70 +6,181 @@ use app\App\Database;
 use app\App\View;
 use app\Domain\UserRole;
 use app\Repository\ProfileRepository;
+use app\Repository\SessionRepository;
 use app\Repository\UserRepository;
 use app\Service\ProfileService;
+use app\Service\SessionService;
 use app\Service\UserService;
 
 class HomeController
 {
     private UserService $userService;
     private ProfileService $profileService;
+    private SessionService $sessionService;
 
     public function __construct()
     {
         $pdo = Database::getConnection();
 
-        $userRepository = new UserRepository($pdo);
+        $userRepository =
+            new UserRepository($pdo);
 
-        $profileRepository = new ProfileRepository($pdo);
+        $this->userService = new UserService($userRepository);
 
-        $this->userService = new UserService(
-            $userRepository,
-            new ProfileService($profileRepository)
-        );
 
-        $this->profileService = new ProfileService(
-            $profileRepository
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Profile
+        |--------------------------------------------------------------------------
+        */
+
+        $profileRepository =
+            new ProfileRepository($pdo);
+
+        $this->profileService =
+            new ProfileService(
+                $profileRepository
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Session
+        |--------------------------------------------------------------------------
+        */
+
+        $sessionRepository =
+            new SessionRepository($pdo);
+
+        $this->sessionService =
+            new SessionService(
+                $sessionRepository
+            );
     }
 
-    public function home()
+
+    /*
+    |--------------------------------------------------------------------------
+    | HOME
+    |--------------------------------------------------------------------------
+    */
+
+    public function home(): void
     {
-        if (($_SESSION['login'] ?? false) !== true) {
-            View::renderPublic('/home', [
-                'title' => 'Blog App - by: Danish'
-            ]);
+
+        if (!$this->sessionService->isLoggedIn()) {
+
+            View::renderPublic(
+                '/home',
+                [
+                    'title' =>
+                        'Blog App - by: Danish'
+                ]
+            );
 
             return;
         }
 
-        $user = $this->userService->getUserByEmail(
-            $_SESSION['email'] ?? ''
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Current User ID
+        |--------------------------------------------------------------------------
+        */
 
-        $profile = $this->profileService->getByUserId(
-            $user->id
-        );
+        $userId =
+            $this->sessionService->getCurrentUserId();
+
+
+        if ($userId === null) {
+
+            View::renderPublic(
+                '/home',
+                [
+                    'title' =>
+                        'Blog App - by: Danish'
+                ]
+            );
+
+            return;
+        }
+
+        $user =
+            $this->userService->getUserById(
+                $userId
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Profile
+        |--------------------------------------------------------------------------
+        */
+
+        $profile =
+            $this->profileService->getByUserId(
+                $user->id
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | User Data
+        |--------------------------------------------------------------------------
+        */
 
         $userData = [
-            'name' => $profile->name,
-            'position' => $profile->position,
-            'period' => $profile->period,
-            'img' => $profile->img
+            'name' =>
+                $profile->name,
+
+            'position' =>
+                $profile->position,
+
+            'period' =>
+                $profile->period,
+
+            'img' =>
+                $profile->img
         ];
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMIN
+        |--------------------------------------------------------------------------
+        */
+
         if ($user->role === UserRole::ADMIN) {
-            View::renderAdmin('/dashboard', [
-                'title' => 'Blog App - by: Danish',
-                'user' => $userData
-            ]);
+
+            View::renderAdmin(
+                '/dashboard',
+                [
+                    'title' =>
+                        'Blog App - by: Danish',
+
+                    'user' =>
+                        $userData
+                ]
+            );
 
             return;
         }
 
-        View::renderUser('/dashboard', [
-            'title' => 'Blog App - by: Danish',
-            'user' => $userData
-        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | USER
+        |--------------------------------------------------------------------------
+        */
+
+        View::renderUser(
+            '/dashboard',
+            [
+                'title' =>
+                    'Blog App - by: Danish',
+
+                'user' =>
+                    $userData
+            ]
+        );
     }
 }

@@ -2,11 +2,18 @@
 
 session_start();
 
+use app\App\Router;
 use app\Controller\ArticleController;
 use app\Controller\AuthController;
 use app\Controller\CommentController;
+use app\Controller\HomeController;
+use app\Controller\ProfileController;
 use app\Controller\TagController;
 use app\Controller\UserController;
+use app\Middleware\AdminOnly;
+use app\Middleware\GuestOnly;
+use app\Middleware\UserAndAdmin;
+use app\Middleware\UserOnly;
 
 require_once __DIR__ . '/../app/App/AutoLoader.php';
 
@@ -17,281 +24,99 @@ app\App\AutoLoader::loadClass();
 // HOME
 // ============================================================
 
-app\App\Router::add(
-    'GET',
-    '/',
-    app\Controller\HomeController::class,
-    'home'
-);
+Router::add('GET', '/', HomeController::class, 'home');
 
 
 // ============================================================
 // AUTH
 // ============================================================
 
-// -------------------------
 // Admin Only
-// -------------------------
+Router::add('GET', '/register', AuthController::class, 'register', [AdminOnly::class]);
+Router::add('POST', '/register', AuthController::class, 'postRegister', [AdminOnly::class]);
+Router::add('GET', '/users', UserController::class, 'users', [AdminOnly::class]);
 
-app\App\Router::add(
-    'GET',
-    '/register',
-    AuthController::class,
-    'register',
-    ['adminOnly']
-);
-
-app\App\Router::add(
-    'POST',
-    '/register',
-    AuthController::class,
-    'postRegister',
-    ['adminOnly']
-);
-
-app\App\Router::add(
-    'GET',
-    '/users',
-    UserController::class,
-    'users',
-    ['adminOnly']
-);
-
-
-// -------------------------
 // Guest Only
-// -------------------------
+Router::add('GET', '/login', AuthController::class, 'login', [GuestOnly::class]);
+Router::add('POST', '/login', AuthController::class, 'postLogin', [GuestOnly::class]);
 
-app\App\Router::add(
-    'GET',
-    '/login',
-    AuthController::class,
-    'login',
-    ['guestOnly']
-);
-
-app\App\Router::add(
-    'POST',
-    '/login',
-    AuthController::class,
-    'postLogin',
-    ['guestOnly']
-);
-
-
-// -------------------------
 // User And Admin
-// -------------------------
-
-app\App\Router::add(
-    'GET',
-    '/logout',
-    AuthController::class,
-    'logout',
-    ['userAndAdmin']
-);
+Router::add('GET', '/logout', AuthController::class, 'logout', [UserAndAdmin::class]);
 
 
 // ============================================================
 // USER
 // ============================================================
 
-app\App\Router::add(
+Router::add(
     'GET',
-    '/user/search',
-    UserController::class,
-    'search'
+    '/profile',
+    ProfileController::class,
+    'profile',
+    [UserAndAdmin::class]
 );
+
+Router::add(
+    'POST',
+    '/profile',
+    ProfileController::class,
+    'postUpdate',
+    [UserAndAdmin::class]
+);
+
+
+Router::add('GET', '/user/search', UserController::class, 'search');
 
 
 // ============================================================
 // ARTICLE
 // ============================================================
 
-// -------------------------
 // Public Article
-// -------------------------
+Router::add('GET', '/article', ArticleController::class, 'article');
 
-// Semua artikel
-app\App\Router::add(
-    'GET',
-    '/article',
-    ArticleController::class,
-    'article'
-);
-
-
-// -------------------------
 // User Article
-// -------------------------
+Router::add('GET', '/article/add', ArticleController::class, 'add', [UserOnly::class]);
+Router::add('POST', '/article/add', ArticleController::class, 'postAdd', [UserOnly::class]);
 
-// Tambah artikel
-app\App\Router::add(
-    'GET',
-    '/article/add',
-    ArticleController::class,
-    'add',
-    ['userOnly']
-);
+Router::add('GET', '/article/edit', ArticleController::class, 'edit', [UserOnly::class]);
+Router::add('POST', '/article/edit', ArticleController::class, 'postEdit', [UserOnly::class]);
 
-app\App\Router::add(
-    'POST',
-    '/article/add',
-    ArticleController::class,
-    'postAdd',
-    ['userOnly']
-);
+Router::add('POST', '/article/delete', ArticleController::class, 'delete', [UserOnly::class]);
 
+Router::add('GET', '/me/article', ArticleController::class, 'myArticle', [UserOnly::class]);
 
-// Edit artikel
-app\App\Router::add(
-    'GET',
-    '/article/edit',
-    ArticleController::class,
-    'edit',
-    ['userOnly']
-);
-
-app\App\Router::add(
-    'POST',
-    '/article/edit',
-    ArticleController::class,
-    'postEdit',
-    ['userOnly']
-);
-
-
-// Hapus artikel
-app\App\Router::add(
-    'POST',
-    '/article/delete',
-    ArticleController::class,
-    'delete',
-    ['userOnly']
-);
-
-
-// Artikel milik user
-app\App\Router::add(
-    'GET',
-    '/me/article',
-    ArticleController::class,
-    'myArticle',
-    ['userOnly']
-);
-
-
-// -------------------------
 // Article Tag AJAX
-// -------------------------
+Router::add('GET', '/article/tag', ArticleController::class, 'getByTag');
 
-app\App\Router::add(
-    'GET',
-    '/article/tag',
-    ArticleController::class,
-    'getByTag'
-);
-
-// =========================
 // Article Like
-// =========================
+Router::add('POST', '/article/like', ArticleController::class, 'like');
+Router::add('POST', '/article/unlike', ArticleController::class, 'unlike');
 
-app\App\Router::add(
-    'POST',
-    '/article/like',
-    ArticleController::class,
-    'like'
-);
-
-app\App\Router::add(
-    'POST',
-    '/article/unlike',
-    ArticleController::class,
-    'unlike'
-);
-
-
-// -------------------------
 // Article Detail
-// -------------------------
-
-app\App\Router::add(
-    'GET',
-    '/article/{slug}',
-    ArticleController::class,
-    'detail'
-);
+Router::add('GET', '/article/{slug}', ArticleController::class, 'detail');
 
 
 // ============================================================
 // TAG
 // ============================================================
 
-// Search tag
-app\App\Router::add(
-    'GET',
-    '/tag/search',
-    TagController::class,
-    'search'
-);
+Router::add('GET', '/tag/search', TagController::class, 'search');
 
 
 // ============================================================
 // COMMENT
 // ============================================================
 
-// Create comment
-app\App\Router::add(
-    'POST',
-    '/comment/create',
-    CommentController::class,
-    'postCreate',
-    ['userOnly']
-);
-
-
-// Update comment
-app\App\Router::add(
-    'POST',
-    '/comment/update',
-    CommentController::class,
-    'postUpdate',
-    ['userOnly']
-);
-
-
-// Delete comment
-app\App\Router::add(
-    'POST',
-    '/comment/delete',
-    CommentController::class,
-    'postDelete',
-    ['userOnly']
-);
-
-
-// Like comment
-app\App\Router::add(
-    'POST',
-    '/comment/like',
-    CommentController::class,
-    'postLike',
-    ['userOnly']
-);
-
-
-// Unlike comment
-app\App\Router::add(
-    'POST',
-    '/comment/unlike',
-    CommentController::class,
-    'postUnlike',
-    ['userOnly']
-);
+Router::add('POST', '/comment/create', CommentController::class, 'postCreate', [UserOnly::class]);
+Router::add('POST', '/comment/update', CommentController::class, 'postUpdate', [UserOnly::class]);
+Router::add('POST', '/comment/delete', CommentController::class, 'postDelete', [UserOnly::class]);
+Router::add('POST', '/comment/like', CommentController::class, 'postLike', [UserOnly::class]);
+Router::add('POST', '/comment/unlike', CommentController::class, 'postUnlike', [UserOnly::class]);
 
 
 // ============================================================
 // RUN ROUTER
 // ============================================================
 
-app\App\Router::run();
+Router::run();

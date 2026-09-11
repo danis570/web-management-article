@@ -18,6 +18,13 @@ class UserService
         $this->userRepository = $userRepository;
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGIN
+    |--------------------------------------------------------------------------
+    */
+
     public function login(
         UserLoginRequest $request
     ): UserLoginResponse {
@@ -33,10 +40,12 @@ class UserService
             );
         }
 
-        if (!password_verify(
-            $request->password,
-            $user->password
-        )) {
+        if (
+            !password_verify(
+                $request->password,
+                $user->password
+            )
+        ) {
             throw new Exception(
                 'Email or password is wrong'
             );
@@ -48,6 +57,13 @@ class UserService
 
         return $response;
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGIN VALIDATION
+    |--------------------------------------------------------------------------
+    */
 
     private function loginValidation(
         UserLoginRequest $request
@@ -61,21 +77,24 @@ class UserService
             );
         }
 
-        if (!filter_var(
-            $request->email,
-            FILTER_VALIDATE_EMAIL
-        )) {
+        if (
+            !filter_var(
+                $request->email,
+                FILTER_VALIDATE_EMAIL
+            )
+        ) {
             throw new Exception(
                 'Email not valid'
             );
         }
     }
 
-    public function logout(): void
-    {
-        session_unset();
-        session_destroy();
-    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET ALL USERS
+    |--------------------------------------------------------------------------
+    */
 
     public function getAll(): array
     {
@@ -89,6 +108,13 @@ class UserService
 
         return $result;
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEARCH USERS
+    |--------------------------------------------------------------------------
+    */
 
     public function search(
         string $keyword,
@@ -108,11 +134,47 @@ class UserService
         );
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET USER BY EMAIL
+    |--------------------------------------------------------------------------
+    */
+
     public function getUserByEmail(
         string $email
     ): User {
         $result = $this->userRepository->findByEmail(
             $email
+        );
+
+        if ($result === null) {
+            throw new Exception(
+                'User not found'
+            );
+        }
+
+        return $result;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET USER BY ID
+    |--------------------------------------------------------------------------
+    */
+
+    public function getUserById(
+        int $id
+    ): User {
+        if ($id <= 0) {
+            throw new Exception(
+                'User ID is invalid'
+            );
+        }
+
+        $result = $this->userRepository->findById(
+            $id
         );
 
         if ($result === null) {

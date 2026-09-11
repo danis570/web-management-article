@@ -4,28 +4,37 @@ namespace app\Controller;
 
 use app\App\Database;
 use app\App\View;
+use app\Repository\SessionRepository;
 use app\Repository\UserRepository;
+use app\Service\SessionService;
 use app\Service\UserService;
 use Exception;
 
 class UserController
 {
     private UserService $userService;
+    private SessionService $sessionService;
 
     public function __construct()
     {
         $pdo = Database::getConnection();
 
         $userRepository = new UserRepository($pdo);
+        $sessionRepository = new SessionRepository($pdo);
 
         $this->userService = new UserService(
             $userRepository
         );
+
+        $this->sessionService = new SessionService(
+            $sessionRepository
+        );
     }
 
-    function users()
+    public function users(): void
     {
         try {
+
             $users = $this->userService->getAll();
 
             View::renderAdmin('/User/users', [
@@ -33,7 +42,9 @@ class UserController
                 'current' => 'users',
                 'user' => $users
             ]);
+
         } catch (Exception $e) {
+
             View::renderAdmin('/User/users', [
                 'title' => 'Users',
                 'current' => 'users',
@@ -43,22 +54,33 @@ class UserController
         }
     }
 
-    function search()
+    public function search(): void
     {
-        $keyword = $_GET['keyword'] ?? '';
+        $keyword = trim($_GET['keyword'] ?? '');
 
-        $user = $this->userService->getUserByEmail(
-            $_SESSION['email']
-        );
+        $userId = $this->sessionService->getCurrentUserId();
+
+        if ($userId === null) {
+            header('Content-Type: application/json');
+
+            http_response_code(401);
+
+            echo json_encode([
+                'error' => 'Unauthorized'
+            ]);
+
+            exit();
+        }
 
         $users = $this->userService->search(
             $keyword,
-            $user->id
+            $userId
         );
 
         header('Content-Type: application/json');
 
         echo json_encode($users);
+
         exit();
     }
 }

@@ -9,9 +9,11 @@ use app\Model\UserProfileRegisterRequest;
 use app\Model\UserLoginRequest;
 use app\Model\UserRegisterRequest;
 use app\Repository\ProfileRepository;
+use app\Repository\SessionRepository;
 use app\Repository\UserRepository;
 use app\Service\ProfileService;
 use app\Service\RegistrationService;
+use app\Service\SessionService;
 use app\Service\UserService;
 use Exception;
 
@@ -23,6 +25,9 @@ class AuthController
     private UserService $userService;
     private ProfileService $profileService;
     private RegistrationService $registrationService;
+
+    private SessionRepository $sessionRepository;
+    private SessionService $sessionService;
 
     public function __construct()
     {
@@ -38,6 +43,12 @@ class AuthController
 
         $this->userService = new UserService(
             $this->userRepository
+        );
+
+        $this->sessionRepository = new SessionRepository($pdo);
+
+        $this->sessionService = new SessionService(
+            $this->sessionRepository
         );
 
         $this->registrationService = new RegistrationService(
@@ -69,13 +80,15 @@ class AuthController
         try {
             $user = $this->userService->login($request);
 
-            $_SESSION['login'] = true;
-            $_SESSION['user_id'] = $user->user->id;
-            $_SESSION['email'] = $user->user->email;
+            // Buat session di database
+            $session = $this->sessionService->create(
+                $user->user->id
+            );
 
-            if ($user->user->role === UserRole::ADMIN) {
-                $_SESSION['admin'] = true;
-            }
+            // Simpan ID session ke cookie browser
+            $this->sessionService->setCookie(
+                $session->id
+            );
 
             // Ambil URL tujuan setelah login
             $redirect = $_POST['redirect'] ?? '/';
@@ -100,6 +113,7 @@ class AuthController
             ]);
         }
     }
+
 
     public function register()
     {
@@ -178,7 +192,7 @@ class AuthController
 
     public function logout()
     {
-        $this->userService->logout();
+        $this->sessionService->logout();
 
         header('Location: /');
         exit();

@@ -6,9 +6,11 @@ use app\App\Database;
 use app\Repository\ArticleRepository;
 use app\Repository\CommentLikeRepository;
 use app\Repository\CommentRepository;
+use app\Repository\SessionRepository;
 use app\Service\ArticleService;
-use app\Service\CommentService;
 use app\Service\CommentLikeService;
+use app\Service\CommentService;
+use app\Service\SessionService;
 use Exception;
 
 class CommentController
@@ -16,73 +18,299 @@ class CommentController
     private CommentService $commentService;
     private CommentLikeService $commentLikeService;
     private ArticleService $articleService;
+    private SessionService $sessionService;
 
     public function __construct()
     {
         $pdo = Database::getConnection();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Repositories
+        |--------------------------------------------------------------------------
+        */
+
         $commentRepository = new CommentRepository($pdo);
-        $commentLikeRepository = new CommentLikeRepository($pdo);
-        $articleRepository = new ArticleRepository($pdo);
 
-        $this->commentService = new CommentService(
-            $commentRepository
-        );
+        $commentLikeRepository =
+            new CommentLikeRepository($pdo);
 
-        $this->commentLikeService = new CommentLikeService(
-            $pdo,
-            $commentLikeRepository,
-            $this->commentService
-        );
+        $articleRepository =
+            new ArticleRepository($pdo);
 
-        $this->articleService = new ArticleService(
-            $articleRepository
-        );
+        $sessionRepository =
+            new SessionRepository($pdo);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Services
+        |--------------------------------------------------------------------------
+        */
+
+        $this->commentService =
+            new CommentService(
+                $commentRepository
+            );
+
+
+        $this->commentLikeService =
+            new CommentLikeService(
+                $pdo,
+                $commentLikeRepository,
+                $this->commentService
+            );
+
+
+        $this->articleService =
+            new ArticleService(
+                $articleRepository
+            );
+
+
+        $this->sessionService =
+            new SessionService(
+                $sessionRepository
+            );
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Current User ID
+    |--------------------------------------------------------------------------
+    */
+
+    private function getCurrentUserId(): int
+    {
+        $userId =
+            $this->sessionService->getCurrentUserId();
+
+        if ($userId === null) {
+            throw new Exception(
+                'User session not found.'
+            );
+        }
+
+        return $userId;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect To Article
+    |--------------------------------------------------------------------------
+    */
 
     private function redirectToArticle(int $articleId): void
     {
-        $article = $this->articleService->getById($articleId);
+        if ($articleId <= 0) {
+            header('Location: /article');
+            exit();
+        }
 
-        header('Location: /article/' . $article['slug']);
+
+        $article =
+            $this->articleService->getById(
+                $articleId
+            );
+
+
+        if (!$article) {
+            header('Location: /article');
+            exit();
+        }
+
+
+        header(
+            'Location: /article/' .
+            $article['slug']
+        );
+
         exit();
     }
 
-    private function getArticleIdFromComment(int $commentId): int
-    {
-        $comment = $this->commentService->getById($commentId);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Get Article ID From Comment
+    |--------------------------------------------------------------------------
+    */
+
+    private function getArticleIdFromComment(
+        int $commentId
+    ): int {
+
+        if ($commentId <= 0) {
+            throw new Exception(
+                'Comment not found.'
+            );
+        }
+
+
+        $comment =
+            $this->commentService->getById(
+                $commentId
+            );
+
 
         if (!$comment) {
-            throw new Exception('Comment not found');
+            throw new Exception(
+                'Comment not found.'
+            );
         }
+
 
         return $comment->articleId;
     }
 
-    public function postCreate(): void
-    {
-        if (($_SESSION['login'] ?? false) !== true) {
-            header('Location: /login');
-            exit();
-        }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect Back To Comment Article
+    |--------------------------------------------------------------------------
+    */
+
+    private function redirectToCommentArticle(
+        int $commentId
+    ): void {
 
         try {
-            $content = $_POST['content'] ?? '';
-            $articleId = (int) ($_POST['article_id'] ?? 0);
 
-            $parentId = isset($_POST['parent_id']) && $_POST['parent_id'] !== ''
-                ? (int) $_POST['parent_id']
-                : null;
+            $articleId =
+                $this->getArticleIdFromComment(
+                    $commentId
+                );
 
-            $userId = (int) ($_SESSION['user_id'] ?? 0);
 
-            if ($userId <= 0) {
-                throw new Exception('User session not found');
-            }
+            $this->redirectToArticle(
+                $articleId
+            );
+
+        } catch (\Throwable $e) {
+
+            header('Location: /article');
+            exit();
+        }
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Store Error And Redirect
+    |--------------------------------------------------------------------------
+    */
+
+    private function handleError(
+        string $message,
+        ?int $articleId = null,
+        ?int $commentId = null
+    ): void {
+
+        /*
+         * Flash/error sementara masih menggunakan
+         * PHP session.
+         *
+         * Nanti bisa kita migrasikan juga.
+         */
+
+        $_SESSION['error'] = $message;
+
+
+        /*
+         * Kalau sudah tahu article ID,
+         * langsung kembali ke artikel.
+         */
+
+        if ($articleId !== null && $articleId > 0) {
+
+            $this->redirectToArticle(
+                $articleId
+            );
+        }
+
+
+        /*
+         * Kalau hanya punya comment ID,
+         * cari artikel dari comment.
+         */
+
+        if ($commentId !== null && $commentId > 0) {
+
+            $this->redirectToCommentArticle(
+                $commentId
+            );
+        }
+
+
+        header('Location: /article');
+        exit();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE COMMENT
+    |--------------------------------------------------------------------------
+    */
+
+    public function postCreate(): void
+    {
+        try {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Current User
+            |--------------------------------------------------------------------------
+            */
+
+            $userId =
+                $this->getCurrentUserId();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Request
+            |--------------------------------------------------------------------------
+            */
+
+            $content =
+                trim(
+                    $_POST['content'] ?? ''
+                );
+
+
+            $articleId =
+                (int) (
+                    $_POST['article_id'] ?? 0
+                );
+
+
+            $parentId =
+                isset($_POST['parent_id']) &&
+                $_POST['parent_id'] !== ''
+                    ? (int) $_POST['parent_id']
+                    : null;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validation
+            |--------------------------------------------------------------------------
+            */
 
             if ($articleId <= 0) {
-                throw new Exception('Article not found');
+                throw new Exception(
+                    'Article not found.'
+                );
             }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create
+            |--------------------------------------------------------------------------
+            */
 
             $this->commentService->create(
                 $content,
@@ -91,47 +319,106 @@ class CommentController
                 $parentId
             );
 
-            $this->redirectToArticle($articleId);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Redirect
+            |--------------------------------------------------------------------------
+            */
+
+            $this->redirectToArticle(
+                $articleId
+            );
 
         } catch (\Throwable $e) {
-            $_SESSION['error'] = $e->getMessage();
 
-            $articleId = (int) ($_POST['article_id'] ?? 0);
+            $articleId =
+                (int) (
+                    $_POST['article_id'] ?? 0
+                );
 
-            if ($articleId > 0) {
-                $this->redirectToArticle($articleId);
-            }
 
-            header('Location: /article');
-            exit();
+            $this->handleError(
+                $e->getMessage(),
+                $articleId
+            );
         }
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE COMMENT
+    |--------------------------------------------------------------------------
+    */
+
     public function postUpdate(): void
     {
-        if (($_SESSION['login'] ?? false) !== true) {
-            header('Location: /login');
-            exit();
-        }
-
         try {
-            $commentId = (int) (
-                $_POST['comment_id'] ?? 0
-            );
 
-            $content = $_POST['content'] ?? '';
+            /*
+            |--------------------------------------------------------------------------
+            | Current User
+            |--------------------------------------------------------------------------
+            */
 
-            $userId = (int) (
-                $_SESSION['user_id'] ?? 0
-            );
+            $userId =
+                $this->getCurrentUserId();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Request
+            |--------------------------------------------------------------------------
+            */
+
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
+
+
+            $content =
+                trim(
+                    $_POST['content'] ?? ''
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Validation
+            |--------------------------------------------------------------------------
+            */
 
             if ($commentId <= 0) {
-                throw new Exception('Comment not found');
+                throw new Exception(
+                    'Comment not found.'
+                );
             }
 
-            $articleId = $this->getArticleIdFromComment(
-                $commentId
-            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Article
+            |--------------------------------------------------------------------------
+            */
+
+            $articleId =
+                $this->getArticleIdFromComment(
+                    $commentId
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update
+            |--------------------------------------------------------------------------
+            |
+            | CommentService bertanggung jawab
+            | mengecek apakah user boleh mengubah
+            | comment tersebut.
+            |
+            */
 
             $this->commentService->update(
                 $commentId,
@@ -139,142 +426,300 @@ class CommentController
                 $userId
             );
 
-            $this->redirectToArticle($articleId);
 
-        } catch (Exception $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | Redirect
+            |--------------------------------------------------------------------------
+            */
 
-            $_SESSION['error'] = $e->getMessage();
+            $this->redirectToArticle(
+                $articleId
+            );
 
-            header('Location: /article');
-            exit();
+        } catch (\Throwable $e) {
+
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
+
+
+            $this->handleError(
+                $e->getMessage(),
+                null,
+                $commentId
+            );
         }
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | DELETE COMMENT
+    |--------------------------------------------------------------------------
+    */
+
     public function postDelete(): void
     {
-        if (($_SESSION['login'] ?? false) !== true) {
-            header('Location: /login');
-            exit();
-        }
-
         try {
-            $commentId = (int) (
-                $_POST['comment_id'] ?? 0
-            );
 
-            $userId = (int) (
-                $_SESSION['user_id'] ?? 0
-            );
+            /*
+            |--------------------------------------------------------------------------
+            | Current User
+            |--------------------------------------------------------------------------
+            */
+
+            $userId =
+                $this->getCurrentUserId();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Request
+            |--------------------------------------------------------------------------
+            */
+
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
+
 
             if ($commentId <= 0) {
-                throw new Exception('Comment not found');
+                throw new Exception(
+                    'Comment not found.'
+                );
             }
 
-            $articleId = $this->getArticleIdFromComment(
-                $commentId
-            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Article
+            |--------------------------------------------------------------------------
+            */
+
+            $articleId =
+                $this->getArticleIdFromComment(
+                    $commentId
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Delete
+            |--------------------------------------------------------------------------
+            */
 
             $this->commentService->delete(
                 $commentId,
                 $userId
             );
 
-            $this->redirectToArticle($articleId);
 
-        } catch (Exception $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | Redirect
+            |--------------------------------------------------------------------------
+            */
 
-            $_SESSION['error'] = $e->getMessage();
+            $this->redirectToArticle(
+                $articleId
+            );
 
-            header('Location: /article');
-            exit();
+        } catch (\Throwable $e) {
+
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
+
+
+            $this->handleError(
+                $e->getMessage(),
+                null,
+                $commentId
+            );
         }
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LIKE COMMENT
+    |--------------------------------------------------------------------------
+    */
 
     public function postLike(): void
     {
-        if (($_SESSION['login'] ?? false) !== true) {
-            header('Location: /login');
-            exit();
-        }
-
         try {
-            $commentId = (int) ($_POST['comment_id'] ?? 0);
-            $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Current User
+            |--------------------------------------------------------------------------
+            */
+
+            $userId =
+                $this->getCurrentUserId();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Comment
+            |--------------------------------------------------------------------------
+            */
+
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
+
 
             if ($commentId <= 0) {
-                throw new Exception('Comment not found');
+                throw new Exception(
+                    'Comment not found.'
+                );
             }
 
-            if ($userId <= 0) {
-                throw new Exception('User session not found');
-            }
 
-            $articleId = $this->getArticleIdFromComment($commentId);
+            /*
+            |--------------------------------------------------------------------------
+            | Article
+            |--------------------------------------------------------------------------
+            */
 
-            $this->commentLikeService->like($commentId, $userId);
+            $articleId =
+                $this->getArticleIdFromComment(
+                    $commentId
+                );
 
-            $this->redirectToArticle($articleId);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Like
+            |--------------------------------------------------------------------------
+            */
+
+            $this->commentLikeService->like(
+                $commentId,
+                $userId
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Redirect
+            |--------------------------------------------------------------------------
+            */
+
+            $this->redirectToArticle(
+                $articleId
+            );
 
         } catch (\Throwable $e) {
 
-            $_SESSION['error'] = $e->getMessage();
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
 
-            $commentId = (int) ($_POST['comment_id'] ?? 0);
 
-            if ($commentId > 0) {
-                try {
-                    $articleId = $this->getArticleIdFromComment($commentId);
-                    $this->redirectToArticle($articleId);
-                } catch (\Throwable $ignored) {
-                }
-            }
-
-            header('Location: /article');
-            exit();
+            $this->handleError(
+                $e->getMessage(),
+                null,
+                $commentId
+            );
         }
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | UNLIKE COMMENT
+    |--------------------------------------------------------------------------
+    */
+
     public function postUnlike(): void
     {
-        if (($_SESSION['login'] ?? false) !== true) {
-            header('Location: /login');
-            exit();
-        }
-
         try {
-            $commentId = (int) ($_POST['comment_id'] ?? 0);
-            $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Current User
+            |--------------------------------------------------------------------------
+            */
+
+            $userId =
+                $this->getCurrentUserId();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Comment
+            |--------------------------------------------------------------------------
+            */
+
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
+
 
             if ($commentId <= 0) {
-                throw new Exception('Comment not found');
+                throw new Exception(
+                    'Comment not found.'
+                );
             }
 
-            if ($userId <= 0) {
-                throw new Exception('User session not found');
-            }
 
-            $articleId = $this->getArticleIdFromComment($commentId);
+            /*
+            |--------------------------------------------------------------------------
+            | Article
+            |--------------------------------------------------------------------------
+            */
 
-            $this->commentLikeService->unlike($commentId, $userId);
+            $articleId =
+                $this->getArticleIdFromComment(
+                    $commentId
+                );
 
-            $this->redirectToArticle($articleId);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Unlike
+            |--------------------------------------------------------------------------
+            */
+
+            $this->commentLikeService->unlike(
+                $commentId,
+                $userId
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Redirect
+            |--------------------------------------------------------------------------
+            */
+
+            $this->redirectToArticle(
+                $articleId
+            );
 
         } catch (\Throwable $e) {
 
-            $_SESSION['error'] = $e->getMessage();
+            $commentId =
+                (int) (
+                    $_POST['comment_id'] ?? 0
+                );
 
-            $commentId = (int) ($_POST['comment_id'] ?? 0);
 
-            if ($commentId > 0) {
-                try {
-                    $articleId = $this->getArticleIdFromComment($commentId);
-                    $this->redirectToArticle($articleId);
-                } catch (\Throwable $ignored) {
-                }
-            }
-
-            header('Location: /article');
-            exit();
+            $this->handleError(
+                $e->getMessage(),
+                null,
+                $commentId
+            );
         }
     }
 }

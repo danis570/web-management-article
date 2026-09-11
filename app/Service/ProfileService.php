@@ -62,12 +62,32 @@ class ProfileService
         return $profile;
     }
 
-    public function update(Profile $profile): Profile
-    {
+    public function update(
+        Profile $profile,
+        ?array $imgFileInfo = null
+    ): Profile {
         $this->validationProfile($profile);
+
+        if (
+            $imgFileInfo !== null &&
+            $imgFileInfo['error'] !== UPLOAD_ERR_NO_FILE
+        ) {
+            $this->uploadImgValidation(
+                $imgFileInfo['name'],
+                $imgFileInfo['size']
+            );
+
+            $profile->img = '/uploads/user-img/' .
+                $this->moveUploadImg(
+                    $imgFileInfo['name'],
+                    $imgFileInfo['tmp_name'],
+                    $imgFileInfo['error']
+                );
+        }
 
         return $this->profileRepository->update($profile);
     }
+
 
     public function deleteByUserId(int $userId): void
     {
