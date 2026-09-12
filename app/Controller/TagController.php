@@ -29,26 +29,18 @@ class TagController
         try {
             $tags = $this->tagService->getAll();
 
-            View::renderAdmin('/Tag/tag', [
+            View::render('Admin', '/Admin/Tag/tag', [
                 'title' => 'Manage Tags',
                 'current' => 'tag',
                 'tags' => $tags
             ]);
         } catch (Exception $e) {
-            View::renderAdmin('/Tag/index', [
+            View::render('Admin', '/Admin/Tag/tag', [
                 'title' => 'Manage Tags',
                 'current' => 'tag',
                 'error' => $e->getMessage()
             ]);
         }
-    }
-
-    public function add(): void
-    {
-        View::renderAdmin('/Tag/add', [
-            'title' => 'Add Tag',
-            'current' => 'tag'
-        ]);
     }
 
     public function postAdd(): void
@@ -74,27 +66,6 @@ class TagController
         }
     }
 
-    public function edit(): void
-    {
-        $id = (int) ($_GET['id'] ?? 0);
-
-        try {
-            $tag = $this->tagService->getById($id);
-
-            if (!$tag) {
-                throw new Exception('Tag not found.');
-            }
-
-            View::renderAdmin('/Tag/edit', [
-                'title' => 'Edit Tag',
-                'current' => 'tag',
-                'tag' => $tag
-            ]);
-        } catch (Exception $e) {
-            header('Location: /tag?error=' . urlencode($e->getMessage()));
-            exit();
-        }
-    }
 
     public function postEdit(): void
     {

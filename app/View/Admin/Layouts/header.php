@@ -24,7 +24,7 @@
                 <?php } else { ?>
                     <li><a href="/users">Users</a></li>
                 <?php } ?>
-                <li><a href="/tag">Tag</a></li>
+                <li><a href="/tag">Tags</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
             <button class="mobile-menu-button" id="menuBtn">☰</button>

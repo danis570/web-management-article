@@ -2,20 +2,22 @@
 
 namespace app\Controller;
 
+use app\App\BaseController;
 use app\App\Database;
 use app\App\View;
 use app\Model\UserChangeEmailRequest;
 use app\Model\UserChangePasswordRequest;
+use app\Repository\ProfileRepository;
 use app\Repository\SessionRepository;
 use app\Repository\UserRepository;
+use app\Service\ProfileService;
 use app\Service\SessionService;
 use app\Service\UserService;
 use Exception;
 
-class UserController
+class UserController extends BaseController
 {
     private UserService $userService;
-    private SessionService $sessionService;
 
     public function __construct()
     {
@@ -28,9 +30,11 @@ class UserController
             $userRepository
         );
 
-        $this->sessionService = new SessionService(
-            $sessionRepository
-        );
+        $sessionService = new SessionService($sessionRepository);
+        $profileRepository = new ProfileRepository($pdo);
+        $profileService = new ProfileService($profileRepository);
+
+        parent::__construct($sessionService, $profileService);
     }
 
     public function users(): void
@@ -39,7 +43,7 @@ class UserController
 
             $users = $this->userService->getAll();
 
-            View::renderAdmin('/User/users', [
+            View::render('Admin', '/Admin/User/users', [
                 'title' => 'Users',
                 'current' => 'users',
                 'user' => $users
@@ -47,7 +51,7 @@ class UserController
 
         } catch (Exception $e) {
 
-            View::renderAdmin('/User/users', [
+            View::render('Admin', '/Admin/User/users', [
                 'title' => 'Users',
                 'current' => 'users',
                 'user' => [],
@@ -99,14 +103,14 @@ class UserController
 
             $user = $this->userService->getUserById($userId);
 
-            View::renderUser('/Profile/account', [
+            View::render('User', '/User/Profile/account', [
                 'title' => 'Account',
                 'user' => $user
             ]);
 
         } catch (Exception $e) {
 
-            View::renderUser('/Profile/account', [
+            View::render('User', '/User/Profile/account', [
                 'title' => 'Account',
                 'user' => null,
                 'error' => $e->getMessage()
@@ -142,7 +146,7 @@ class UserController
 
         } catch (Exception $e) {
 
-            View::renderUser('/Profile/account', [
+            View::render('User', '/User/Profile/account', [
                 'title' => 'Account',
                 'user' => isset($userId)
                     ? $this->userService->getUserById($userId)
@@ -186,7 +190,7 @@ class UserController
 
         } catch (Exception $e) {
 
-            View::renderUser('/Profile/account', [
+            View::render('User', '/User/Profile/account', [
                 'title' => 'Account',
                 'user' => isset($userId)
                     ? $this->userService->getUserById($userId)

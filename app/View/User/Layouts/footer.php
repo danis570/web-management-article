@@ -1,18 +1,18 @@
 <!-- Footer -->
 <footer class="footer" style="border-top: 2px dashed var(--dark);">
-    <div class="container" >
+    <div class="container">
         <div class="footer-content">
             <!-- Kolom Kiri: Logo & Deskripsi -->
             <div class="footer-column footer-brand">
                 <a href="/logo.webp" class="footer-logo">
                     <!-- Ganti src dengan logo bundar Anda jika ada -->
                     <div class="footer-logo-icon">
-                        <img src="/logo.webp" alt="Logo"
-                            style="width:100%; height:100%; border-radius:50%;">
+                        <img src="/logo.webp" alt="Logo" style="width:100%; height:100%; border-radius:50%;">
                     </div>
                     PR IPNU & IPPNU Desa Ketambul
                 </a>
-                <p>Jelajahi seluruh kontent tentang PR IPNU & IPPNU Desa Ketambul, Website ini di kelola langsung oleh Departemen Komunikasi.</p>
+                <p>Jelajahi seluruh kontent tentang PR IPNU & IPPNU Desa Ketambul, Website ini di kelola langsung oleh
+                    Departemen Komunikasi.</p>
             </div>
 
             <!-- Kolom Tengah: Navigasi -->
@@ -49,15 +49,36 @@
     </div>
 </footer>
 
+<script>
+    const profileMenuBtn = document.getElementById('profileMenuBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+
+    // 1. Aksi ketika foto profil diklik
+    profileMenuBtn.addEventListener('click', function (event) {
+        event.stopPropagation(); // Mencegah event bubbling ke window
+        if (profileDropdown.style.display === 'block') {
+            profileDropdown.style.display = 'none';
+        } else {
+            profileDropdown.style.display = 'block';
+        }
+    });
+
+    // 2. Tutup dropdown otomatis jika pengguna mengklik di luar area menu dropdown
+    window.addEventListener('click', function (event) {
+        if (!profileDropdown.contains(event.target) && event.target !== profileMenuBtn) {
+            profileDropdown.style.display = 'none';
+        }
+    });
+</script>
 
 <!-- Mobile menu script -->
 <script>
     document.getElementById('menuBtn').addEventListener('click', function () {
         const menu = document.querySelector('.menu');
-        
+
         // 1. Toggle class active untuk memunculkan/menyembunyikan menu
         menu.classList.toggle('active');
-        
+
         // 2. Cek apakah menu saat ini sedang aktif (terbuka) atau tidak
         if (menu.classList.contains('active')) {
             this.textContent = '✕'; // Ubah tombol menjadi X jika terbuka

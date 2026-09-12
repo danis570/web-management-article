@@ -50,13 +50,68 @@
                         <div class="neo-card article-card">
 
                             <!-- =========================
-                                 IDENTITAS & JUDUL
+                                IDENTITAS & JUDUL
                             ========================== -->
                             <div class="article-header-box">
 
                                 <h4 class="article-title">
-                                    <?= htmlspecialchars($article['title']) ?>
+                                    <a href="/article/<?= urlencode($article['slug']) ?>" style="
+                                            text-decoration: none; 
+                                            color: inherit;
+                                        " onmouseover="this.style.color='var(--primary)'"
+                                        onmouseout="this.style.color='inherit'">
+                                        <?= htmlspecialchars($article['title']) ?>
+                                    </a>
                                 </h4>
+
+                            </div>
+
+
+                            <!-- METRIK / STATISTIK ARTIKEL -->
+                            <div class="article-stats" style="
+                                        display: flex; 
+                                        gap: 1rem; 
+                                        font-size: 0.9rem; 
+                                        color: #666; 
+                                        margin-bottom: 1rem;
+                                        align-items: center;
+                                    ">
+
+                                <!-- View Count -->
+                                <span class="stat-item" title="Dilihat"
+                                    style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" aria-hidden="true">
+                                        <path
+                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                    <?= number_format((int) $article['view_count']) ?>
+                                </span>
+
+                                <!-- Like Count -->
+                                <span class="stat-item" title="Disukai"
+                                    style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" aria-hidden="true">
+                                        <path
+                                            d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                    </svg>
+                                    <?= number_format((int) $article['like_count']) ?>
+                                </span>
+
+                                <!-- Comment Count -->
+                                <span class="stat-item" title="Komentar"
+                                    style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                    </svg>
+                                    <?= number_format((int) ($article['comment_count'] ?? 0)) ?>
+                                </span>
 
                             </div>
 
@@ -404,10 +459,7 @@
     .article-card .article-details {
         display: flex;
         flex-direction: column;
-
-        padding-top: 0.75rem;
-
-        margin-top: auto;
+        margin-top: 0;
     }
 
 
@@ -434,6 +486,10 @@
         line-height: 1.4;
 
         color: #555555;
+    }
+
+    .article-stats {
+        margin-top: 1rem;
     }
 
 

@@ -2,6 +2,7 @@
 
 namespace app\Controller;
 
+use app\App\BaseController;
 use app\App\Database;
 use app\App\View;
 use app\Domain\UserRole;
@@ -31,7 +32,7 @@ use app\Service\TagService;
 use app\Service\UserService;
 use Exception;
 
-class ArticleController
+class ArticleController extends BaseController
 {
     private ArticleService $articleService;
     private ArticleImageService $articleImageService;
@@ -42,8 +43,6 @@ class ArticleController
     private CommentService $commentService;
     private ArticleViewService $articleViewService;
     private ArticleLikeService $articleLikeService;
-    private ProfileService $profileService;
-    private SessionService $sessionService;
 
     public function __construct()
     {
@@ -146,20 +145,6 @@ class ArticleController
             $articleLikeRepository
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Profile
-        |--------------------------------------------------------------------------
-        */
-
-        $profileRepository = new ProfileRepository($pdo);
-
-        $this->profileService = new ProfileService(
-            $profileRepository
-        );
-
-
         /*
         |--------------------------------------------------------------------------
         | User
@@ -173,15 +158,17 @@ class ArticleController
 
         /*
         |--------------------------------------------------------------------------
-        | Session
+        | Profile
         |--------------------------------------------------------------------------
         */
 
-        $sessionRepository = new SessionRepository($pdo);
+        $profileRepository = new ProfileRepository($pdo);
+        $profileService = new ProfileService($profileRepository);
 
-        $this->sessionService = new SessionService(
-            $sessionRepository
-        );
+        $sessionRepository = new SessionRepository($pdo);
+        $sessionService = new SessionService($sessionRepository);
+
+        parent::__construct($sessionService, $profileService);
     }
 
 
@@ -197,13 +184,6 @@ class ArticleController
             'title' => 'Article',
             'current' => 'article',
         ];
-
-        /*
-         * Halaman artikel tidak boleh diakses admin.
-         *
-         * Route ini public, jadi pengecekan admin
-         * tetap dilakukan di controller.
-         */
 
         $user = $this->getCurrentUser();
 
@@ -226,25 +206,10 @@ class ArticleController
             $data['emptyArticle'] = $e->getMessage();
         }
 
+        $layout = ($user !== null) ? 'User' : 'Public';
 
-        /*
-         * Render berdasarkan status login.
-         */
+        View::render($layout, '/Article/article', $data);
 
-        if ($user !== null) {
-
-            View::renderUser(
-                '/Article/article',
-                $data
-            );
-
-            return;
-        }
-
-        View::renderPublic(
-            '/Article/article',
-            $data
-        );
     }
 
 
@@ -256,13 +221,6 @@ class ArticleController
 
     public function myArticle(): void
     {
-        /*
-         * Route sudah menggunakan UserOnly.
-         *
-         * Jadi di sini kita tidak perlu lagi
-         * mengecek $_SESSION['login'] atau $_SESSION['admin'].
-         */
-
         $userId = $this->getCurrentUserId();
 
         if ($userId === null) {
@@ -270,49 +228,36 @@ class ArticleController
             exit();
         }
 
-
         $data = [
             'title' => 'My Article',
             'current' => 'my-article',
         ];
 
-
         try {
+            $user = $this->userService->getUserById($userId);
 
-            $user = $this->userService->getUserById(
-                $userId
-            );
+            $articles = $this->articleService->getByUserId($user->id);
 
-            $data['article'] =
-                $this->articleService->getByUserId(
-                    $user->id
-                );
+            if (is_array($articles)) {
+                foreach ($articles as $key => $article) {
+                    $comments = $this->commentService->getByArticleId((int) $article['id'], $user->id);
+                    $articles[$key]['comment_count'] = is_array($comments) ? count($comments) : 0;
+                }
+            }
 
+            // 3. Masukkan kembali ke data array untuk dikirim ke view
+            $data['article'] = $articles;
 
-            /*
-             * Profile user yang sedang login.
-             */
-
-            $profile =
-                $this->profileService->getByUserId(
-                    $user->id
-                );
-
-            $data['currentUserName'] =
-                $profile->name;
+            $profile = $this->profileService->getByUserId($user->id);
+            $data['currentUserName'] = $profile->name;
 
         } catch (Exception $e) {
-
-            $data['emptyArticle'] =
-                $e->getMessage();
+            $data['emptyArticle'] = $e->getMessage();
         }
 
-
-        View::renderUser(
-            '/Article/me',
-            $data
-        );
+        View::render('User', '/User/Article/me', $data);
     }
+
 
 
     /*
@@ -471,20 +416,9 @@ class ArticleController
         |--------------------------------------------------------------------------
         */
 
-        if ($user !== null) {
+        $layout = ($user !== null) ? 'User' : 'Public';
 
-            View::renderUser(
-                '/Article/detail',
-                $data
-            );
-
-            return;
-        }
-
-        View::renderPublic(
-            '/Article/detail',
-            $data
-        );
+        View::render($layout, '/Article/detail', $data);
     }
 
 
@@ -670,88 +604,6 @@ class ArticleController
 
     /*
     |--------------------------------------------------------------------------
-    | ARTICLE BY TAG
-    |--------------------------------------------------------------------------
-    */
-
-    public function tag(array $params): void
-    {
-        $tagSlug =
-            trim($params['slug'] ?? '');
-
-
-        $data = [
-            'title' => 'Artikel',
-            'current' => 'article',
-            'tag' => null,
-            'articles' => [],
-        ];
-
-
-        try {
-
-            /*
-             * Tag.
-             */
-
-            $tag =
-                $this->tagService->getBySlug(
-                    $tagSlug
-                );
-
-
-            if (!$tag) {
-                throw new Exception(
-                    'Tag not found.'
-                );
-            }
-
-
-            $data['tag'] =
-                $tag;
-
-
-            /*
-             * Article berdasarkan tag.
-             */
-
-            $data['articles'] =
-                $this->articleService->getByTag(
-                    $tag->slug
-                );
-
-
-        } catch (Exception $e) {
-
-            $data['error'] =
-                $e->getMessage();
-        }
-
-
-        /*
-         * Render sesuai login.
-         */
-
-        if ($this->isLoggedIn()) {
-
-            View::renderUser(
-                '/Article/tag',
-                $data
-            );
-
-            return;
-        }
-
-
-        View::renderPublic(
-            '/Article/tag',
-            $data
-        );
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
     | ARTICLE TAG AJAX
     |--------------------------------------------------------------------------
     */
@@ -832,14 +684,8 @@ class ArticleController
 
     public function add(): void
     {
-        View::renderUser(
-            '/Article/add',
-            [
-                'title' => 'Add new Article'
-            ]
-        );
+        View::render('User', '/User/Article/add', ['title' => 'Add New Article']);
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -1022,13 +868,10 @@ class ArticleController
 
         } catch (Exception $e) {
 
-            View::renderUser(
-                '/Article/add',
-                [
-                    'title' => 'Add new Article',
-                    'error' => $e->getMessage()
-                ]
-            );
+            View::render('User', '/User/Article/add', [
+                'title' => 'Add new Article',
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
@@ -1120,31 +963,23 @@ class ArticleController
                 $this->articleTagService
                     ->getByArticleId($id);
 
+            View::render('User', '/User/Article/edit', [
+                'title' => 'Edit Article',
+                'article' => $article,
+                'images' => $images,
+                'articleUsers' => $articleUsers,
+                'articleTags' => $articleTags,
 
-            View::renderUser(
-                '/Article/edit',
-                [
-                    'title' => 'Edit Article',
-                    'article' => $article,
-                    'images' => $images,
-                    'articleUsers' => $articleUsers,
-                    'articleTags' => $articleTags,
-
-                    'currentUserId' => $user->id,
-                    'ownerId' => (int) $article['owner_id'],
-                    'isOwner' => $isOwner
-                ]
-            );
+                'currentUserId' => $user->id,
+                'ownerId' => (int) $article['owner_id'],
+                'isOwner' => $isOwner
+            ]);
 
         } catch (Exception $e) {
-
-            View::renderUser(
-                '/Article/edit',
-                [
-                    'title' => 'Edit Article',
-                    'error' => $e->getMessage()
-                ]
-            );
+            View::render('User', '/User/Article/edit', [
+                'title' => 'Edit Article',
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
@@ -1431,26 +1266,15 @@ class ArticleController
             exit();
 
         } catch (Exception $e) {
-
-            View::renderUser(
-                '/Article/edit',
-                [
-                    'title' => 'Edit Article',
-                    'error' => $e->getMessage()
-                ]
-            );
+            View::render('User', '/User/Article/edit', [
+                'title' => 'Edit Article',
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
     public function userArticles(array $params): void
     {
-        /*
-         * Halaman artikel tidak boleh diakses admin.
-         *
-         * Route ini public, jadi pengecekan admin
-         * tetap dilakukan di controller.
-         */
-
         $user = $this->getCurrentUser();
 
         if (
@@ -1475,22 +1299,19 @@ class ArticleController
             }
 
 
-            // Cari user berdasarkan username/email prefix
             $userProfile = $this->articleService->getByUsername($username);
 
             if (!$userProfile) {
                 throw new Exception('User not found.');
             }
 
-
-            // Ambil semua artikel yang terhubung
-            // dengan user tersebut melalui article_user
             $articles = $this->articleService->getByUserId(
                 $userProfile->id
             );
 
+            $layout = ($user !== null) ? 'User' : 'Public';
 
-            View::renderUser('/Article/user', [
+            View::render($layout, '/Article/user', [
                 'title' => "Article $username",
                 'user' => $userProfile,
                 'username' => $username,
@@ -1498,7 +1319,6 @@ class ArticleController
             ]);
 
         } catch (Exception $e) {
-
             echo $e->getMessage();
         }
     }

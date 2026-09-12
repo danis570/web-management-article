@@ -60,9 +60,9 @@ class AuthController
 
     public function login()
     {
-        View::renderPublic('/Auth/login', [
-            'current' => 'login',
-            'title' => 'Login'
+        View::render('Public', '/Public/Auth/login', [
+            'title' => 'Login',
+            'current' => 'login'
         ]);
     }
 
@@ -106,7 +106,7 @@ class AuthController
             exit();
 
         } catch (Exception $e) {
-            View::renderPublic('/Auth/login', [
+            View::render('Public', '/Public/Auth/login', [
                 'title' => 'Login',
                 'current' => 'login',
                 'error' => $e->getMessage()
@@ -117,8 +117,8 @@ class AuthController
 
     public function register()
     {
-        View::renderAdmin('/Auth/register', [
-            'title' => 'Register'
+        View::render('Admin', '/Admin/Auth/register', [
+            'title' => 'Register New User'
         ]);
     }
 
@@ -183,7 +183,7 @@ class AuthController
             exit();
 
         } catch (Exception $e) {
-            View::renderAdmin('/Auth/register', [
+            View::render('Admin', '/Admin/Auth/register', [
                 'title' => 'Register',
                 'error' => $e->getMessage()
             ]);

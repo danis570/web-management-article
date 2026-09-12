@@ -26,7 +26,6 @@ app\App\AutoLoader::loadClass();
 
 Router::add('GET', '/', HomeController::class, 'home');
 
-
 // ============================================================
 // AUTH
 // ============================================================
@@ -35,11 +34,9 @@ Router::add('GET', '/', HomeController::class, 'home');
 Router::add('GET', '/register', AuthController::class, 'register', [AdminOnly::class]);
 Router::add('POST', '/register', AuthController::class, 'postRegister', [AdminOnly::class]);
 Router::add('GET', '/users', UserController::class, 'users', [AdminOnly::class]);
-
 // Guest Only
 Router::add('GET', '/login', AuthController::class, 'login', [GuestOnly::class]);
 Router::add('POST', '/login', AuthController::class, 'postLogin', [GuestOnly::class]);
-
 // User And Admin
 Router::add('GET', '/logout', AuthController::class, 'logout', [UserAndAdmin::class]);
 
@@ -48,123 +45,46 @@ Router::add('GET', '/logout', AuthController::class, 'logout', [UserAndAdmin::cl
 // USER
 // ============================================================
 
-Router::add(
-    'GET',
-    '/profile',
-    ProfileController::class,
-    'profile',
-    [UserAndAdmin::class]
-);
-
-Router::add(
-    'POST',
-    '/profile',
-    ProfileController::class,
-    'postUpdate',
-    [UserAndAdmin::class]
-);
+Router::add('GET', '/profile', ProfileController::class, 'profile', [UserOnly::class]);
+Router::add('POST', '/profile', ProfileController::class, 'postUpdate', [UserOnly::class]);
 
 Router::add('GET', '/user/search', UserController::class, 'search');
 Router::add('GET', '/account', UserController::class, 'account', [UserOnly::class]);
 Router::add('POST', '/account/email', UserController::class, 'postChangeEmail', [UserOnly::class]);
 Router::add('POST', '/account/password', UserController::class, 'postChangePassword', [UserOnly::class]);
-Router::add(
-    'POST',
-    '/user/reset-password',
-    UserController::class,
-    'postResetPassword',
-    [AdminOnly::class]
-);
+Router::add('POST', '/user/reset-password', UserController::class, 'postResetPassword', [AdminOnly::class]);
 
 // ============================================================
 // ARTICLE
 // ============================================================
 
-// Public Article
-Router::add('GET', '/article', ArticleController::class, 'article');
-
 // User Article
 Router::add('GET', '/article/add', ArticleController::class, 'add', [UserOnly::class]);
 Router::add('POST', '/article/add', ArticleController::class, 'postAdd', [UserOnly::class]);
-
 Router::add('GET', '/article/edit', ArticleController::class, 'edit', [UserOnly::class]);
 Router::add('POST', '/article/edit', ArticleController::class, 'postEdit', [UserOnly::class]);
-
 Router::add('POST', '/article/delete', ArticleController::class, 'delete', [UserOnly::class]);
-
 Router::add('GET', '/me/article', ArticleController::class, 'myArticle', [UserOnly::class]);
-
-// Article Tag AJAX
+// Public Article
+Router::add('GET', '/article', ArticleController::class, 'article');
 Router::add('GET', '/article/tag', ArticleController::class, 'getByTag');
-
-// Article Like
 Router::add('POST', '/article/like', ArticleController::class, 'like');
 Router::add('POST', '/article/unlike', ArticleController::class, 'unlike');
-
-// Article Detail
 Router::add('GET', '/article/@{username}', ArticleController::class, 'userArticles');
 Router::add('GET', '/article/{slug}', ArticleController::class, 'detail');
-
 
 // ============================================================
 // TAG
 // ============================================================
 
-Router::add(
-    'GET',
-    '/tag',
-    TagController::class,
-    'index',
-    [AdminOnly::class]
-);
+// public
+Router::add('GET', '/tag/search', TagController::class, 'search');
 
-Router::add(
-    'GET',
-    '/tag/add',
-    TagController::class,
-    'add',
-    [AdminOnly::class]
-);
+Router::add('GET', '/tag', TagController::class, 'index', [AdminOnly::class]);
+Router::add('POST', '/tag/add', TagController::class, 'postAdd', [AdminOnly::class]);
+Router::add('POST', '/tag/edit', TagController::class, 'postEdit', [AdminOnly::class]);
+Router::add('POST', '/tag/delete', TagController::class, 'delete', [AdminOnly::class]);
 
-Router::add(
-    'POST',
-    '/tag/add',
-    TagController::class,
-    'postAdd',
-    [AdminOnly::class]
-);
-
-Router::add(
-    'GET',
-    '/tag/edit',
-    TagController::class,
-    'edit',
-    [AdminOnly::class]
-);
-
-Router::add(
-    'POST',
-    '/tag/edit',
-    TagController::class,
-    'postEdit',
-    [AdminOnly::class]
-);
-
-Router::add(
-    'POST',
-    '/tag/delete',
-    TagController::class,
-    'delete',
-    [AdminOnly::class]
-);
-
-// Tetap public
-Router::add(
-    'GET',
-    '/tag/search',
-    TagController::class,
-    'search'
-);
 
 // ============================================================
 // COMMENT

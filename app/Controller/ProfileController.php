@@ -2,6 +2,7 @@
 
 namespace app\Controller;
 
+use app\App\BaseController;
 use app\App\Database;
 use app\App\View;
 use app\Repository\ProfileRepository;
@@ -10,11 +11,8 @@ use app\Service\ProfileService;
 use app\Service\SessionService;
 use Exception;
 
-class ProfileController
+class ProfileController extends BaseController
 {
-    private ProfileService $profileService;
-    private SessionService $sessionService;
-
     public function __construct()
     {
         $pdo = Database::getConnection();
@@ -22,13 +20,10 @@ class ProfileController
         $profileRepository = new ProfileRepository($pdo);
         $sessionRepository = new SessionRepository($pdo);
 
-        $this->profileService = new ProfileService(
-            $profileRepository
-        );
+        $profileService = new ProfileService($profileRepository);
+        $sessionService = new SessionService($sessionRepository);
 
-        $this->sessionService = new SessionService(
-            $sessionRepository
-        );
+        parent::__construct($sessionService, $profileService);
     }
 
     public function profile(): void
@@ -45,12 +40,12 @@ class ProfileController
                 $userId
             );
 
-            View::renderUser('/Profile/profile', [
+            View::render('User', '/User/Profile/profile', [
                 'title' => 'Profile',
                 'profile' => $profile
             ]);
         } catch (Exception $e) {
-            View::renderUser('/Profile/profile', [
+            View::render('User', '/User/Profile/profile', [
                 'title' => 'Profile',
                 'profile' => null,
                 'error' => $e->getMessage()
@@ -95,7 +90,7 @@ class ProfileController
             header('Location: /profile');
             exit();
         } catch (Exception $e) {
-            View::renderUser('/Profile/profile', [
+            View::render('User', '/User/Profile/profile', [
                 'title' => 'Profile',
                 'profile' => $profile ?? null,
                 'error' => $e->getMessage()

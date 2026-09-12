@@ -4,24 +4,19 @@ namespace app\App;
 
 class View
 {
-    static function renderPublic(string $path, array $model)
+    private static array $globalData = [];
+
+    public static function share(string $key, mixed $value): void
     {
-        require_once __DIR__ . '/../View/Public/Layouts/header.php';
-        require_once __DIR__ . "/../View/Public$path.php";
-        require_once __DIR__ . '/../View/Public/Layouts/footer.php';
+        self::$globalData[$key] = $value;
     }
 
-    static function renderUser(string $path, array $model)
+    public static function render(string $layout, string $path, array $model)
     {
-        require_once __DIR__ . '/../View/User/Layouts/header.php';
-        require_once __DIR__ . "/../View/User$path.php";
-        require_once __DIR__ . '/../View/User/Layouts/footer.php';
-    }
+        $model = array_merge(self::$globalData, $model);
 
-    static function renderAdmin(string $path, array $model)
-    {
-        require_once __DIR__ . '/../View/Admin/Layouts/header.php';
-        require_once __DIR__ . "/../View/Admin$path.php";
-        require_once __DIR__ . '/../View/Admin/Layouts/footer.php';
+        require_once __DIR__ . "/../View/{$layout}/Layouts/header.php";
+        require_once __DIR__ . "/../View{$path}.php";
+        require_once __DIR__ . "/../View/{$layout}/Layouts/footer.php";
     }
 }
