@@ -3,7 +3,9 @@
 namespace app\Repository;
 
 use app\Domain\Article;
+use app\Domain\User;
 use PDO;
+use UserRole;
 
 class ArticleRepository
 {
@@ -82,6 +84,12 @@ class ArticleRepository
                 ORDER BY p.name ASC
                 SEPARATOR ', '
             ) AS authors,
+
+            GROUP_CONCAT(
+                DISTINCT u.email
+                ORDER BY p.name ASC
+                SEPARATOR ','
+            ) AS author_emails,
 
             GROUP_CONCAT(
                 DISTINCT p.img
@@ -211,6 +219,15 @@ class ArticleRepository
             -- Nama pemilik artikel
             owner_profile.name AS owner_name,
 
+            -- Gambar utama artikel
+            (
+                SELECT ai.image
+                FROM article_images ai
+                WHERE ai.article_id = a.id
+                ORDER BY ai.id ASC
+                LIMIT 1
+            ) AS image,
+
             -- Nama kolaborator, kecuali owner
             GROUP_CONCAT(
                 DISTINCT CASE
@@ -262,6 +279,41 @@ class ArticleRepository
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return !empty($result) ? $result : false;
+    }
+
+    public function getByUsername(string $username): User|false
+    {
+        $sql = "
+        SELECT
+            id,
+            role,
+            email,
+            password
+        FROM users
+        WHERE SUBSTRING_INDEX(email, '@', 1) = ?
+        LIMIT 1
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute([
+            $username
+        ]);
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$data) {
+            return false;
+        }
+
+        $user = new User();
+
+        $user->id = (int) $data['id'];
+        $user->role = \app\Domain\UserRole::from($data['role']);
+        $user->email = $data['email'];
+        $user->password = $data['password'];
+
+        return $user;
     }
 
     function getById(int $id): array|false

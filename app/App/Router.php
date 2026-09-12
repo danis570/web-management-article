@@ -74,6 +74,25 @@ class Router
                     continue;
                 }
 
+                if (
+                    str_starts_with($routePart, '@{') &&
+                    str_ends_with($routePart, '}')
+                ) {
+                    $paramName = trim(
+                        substr($routePart, 1),
+                        '{}'
+                    );
+
+                    if (!str_starts_with($pathParts[$index], '@')) {
+                        $match = false;
+                        break;
+                    }
+
+                    $params[$paramName] = $pathParts[$index];
+
+                    continue;
+                }
+
                 // Segment tidak cocok
                 if ($routePart !== $pathParts[$index]) {
                     $match = false;

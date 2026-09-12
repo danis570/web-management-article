@@ -53,7 +53,7 @@
                                     <div class="user-avatar">
                                         <img src="/uploads/users/<?= !empty($user['img'])
                                             ? htmlspecialchars($user['img'])
-                                            : 'user-img/default-img-user.png' ?>" alt="img-user">
+                                            : 'default.png' ?>" alt="img-user">
                                     </div>
 
                                     <h4 class="user-title">

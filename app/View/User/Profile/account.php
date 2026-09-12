@@ -6,6 +6,10 @@ $error = $model['error'] ?? null;
 ?>
 
 <style>
+    .hero h1::after {
+        display: none;
+    }
+
     /* ========================================================
        ACCOUNT SETTINGS PAGE
     ======================================================== */
@@ -24,6 +28,7 @@ $error = $model['error'] ?? null;
         width: 100%;
         text-align: center;
         margin: 0 auto 3rem auto;
+        margin-bottom: 0;
         box-sizing: border-box;
     }
 
@@ -56,7 +61,6 @@ $error = $model['error'] ?? null;
 
     .account-settings-grid {
         width: 100%;
-        max-width: 1000px;
         margin: 0 auto;
 
         display: grid;
@@ -70,7 +74,6 @@ $error = $model['error'] ?? null;
     .account-settings-header,
     .account-settings-grid {
         width: 100%;
-        max-width: 1000px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -198,24 +201,6 @@ $error = $model['error'] ?? null;
 
         <div class="hero-content">
 
-
-            <!-- ==================================================
-                 HEADER
-            ================================================== -->
-
-            <div class="account-settings-header">
-
-                <h1 class="text-3xl font-bold">
-                    Account Settings
-                </h1>
-
-                <p class="text-gray-600 font-semibold">
-                    Kelola email dan password akun kamu.
-                </p>
-
-            </div>
-
-
             <!-- ==================================================
                  ERROR NOTIFICATION
             ================================================== -->
@@ -270,6 +255,19 @@ $error = $model['error'] ?? null;
                 <?php unset($_SESSION['flash_message']); ?>
 
             <?php } ?>
+
+
+            <!-- ==================================================
+                 HEADER
+            ================================================== -->
+
+            <div class="account-settings-header">
+
+                <h1 class="text-3xl font-bold">
+                    Account Settings
+                </h1>
+
+            </div>
 
 
             <!-- ==================================================

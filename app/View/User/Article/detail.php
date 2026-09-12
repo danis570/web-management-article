@@ -117,6 +117,10 @@
                                     $model['article']['authors']
                                 );
 
+                                $authorEmails = !empty($model['article']['author_emails'])
+                                    ? explode(',', $model['article']['author_emails'])
+                                    : [];
+
                                 $authorImages = !empty($model['article']['author_images'])
                                     ? explode(',', $model['article']['author_images'])
                                     : [];
@@ -124,7 +128,14 @@
 
                                 <?php foreach ($authors as $index => $author): ?>
 
-                                    <div class="author-item">
+                                    <?php
+                                    $email = $authorEmails[$index] ?? '';
+                                    $username = $email !== ''
+                                        ? explode('@', $email)[0]
+                                        : '';
+                                    ?>
+
+                                    <a href="/article/@<?= urlencode($username) ?>" class="author-item">
 
                                         <?php if (!empty($authorImages[$index])): ?>
 
@@ -143,7 +154,7 @@
                                             <?= htmlspecialchars($author) ?>
                                         </span>
 
-                                    </div>
+                                    </a>
 
                                 <?php endforeach; ?>
 

@@ -56,9 +56,10 @@ class ArticleController
         */
 
         $articleRepository = new ArticleRepository($pdo);
-
+        $userRepository = new UserRepository($pdo);
         $this->articleService = new ArticleService(
-            $articleRepository
+            $articleRepository,
+            $userRepository
         );
 
 
@@ -164,8 +165,6 @@ class ArticleController
         | User
         |--------------------------------------------------------------------------
         */
-
-        $userRepository = new UserRepository($pdo);
 
         $this->userService = new UserService(
             $userRepository
@@ -1440,6 +1439,67 @@ class ArticleController
                     'error' => $e->getMessage()
                 ]
             );
+        }
+    }
+
+    public function userArticles(array $params): void
+    {
+        /*
+         * Halaman artikel tidak boleh diakses admin.
+         *
+         * Route ini public, jadi pengecekan admin
+         * tetap dilakukan di controller.
+         */
+
+        $user = $this->getCurrentUser();
+
+        if (
+            $user !== null &&
+            $user->role === UserRole::ADMIN
+        ) {
+            header('Location: /');
+            exit();
+        }
+
+
+        try {
+
+            // Ambil username dari parameter route
+            $username = ltrim(
+                trim($params['username'] ?? ''),
+                '@'
+            );
+
+            if ($username === '') {
+                throw new Exception('Username cannot be empty.');
+            }
+
+
+            // Cari user berdasarkan username/email prefix
+            $userProfile = $this->articleService->getByUsername($username);
+
+            if (!$userProfile) {
+                throw new Exception('User not found.');
+            }
+
+
+            // Ambil semua artikel yang terhubung
+            // dengan user tersebut melalui article_user
+            $articles = $this->articleService->getByUserId(
+                $userProfile->id
+            );
+
+
+            View::renderUser('/Article/user', [
+                'title' => "Article $username",
+                'user' => $userProfile,
+                'username' => $username,
+                'articles' => $articles,
+            ]);
+
+        } catch (Exception $e) {
+
+            echo $e->getMessage();
         }
     }
 

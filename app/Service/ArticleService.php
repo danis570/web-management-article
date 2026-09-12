@@ -3,20 +3,24 @@
 namespace app\Service;
 
 use app\Domain\Article;
+use app\Domain\User;
 use app\Model\ArticleAddRequest;
 use app\Model\ArticleAddResponse;
 use app\Model\ArticleEditRequest;
 use app\Model\ArticleEditResponse;
 use app\Repository\ArticleRepository;
+use app\Repository\UserRepository;
 use Exception;
 
 class ArticleService
 {
     private ArticleRepository $articleRepository;
+    private UserRepository $userRepository;
 
-    public function __construct(ArticleRepository $articleRepository)
+    public function __construct(ArticleRepository $articleRepository, UserRepository $userRepository)
     {
         $this->articleRepository = $articleRepository;
+        $this->userRepository = $userRepository;
     }
 
     function add(ArticleAddRequest $request): ArticleAddResponse
@@ -97,6 +101,17 @@ class ArticleService
         }
 
         throw new Exception("You don't have any articles yet.");
+    }
+
+    public function getByUsername(string $username): User|false
+    {
+        $username = trim($username);
+
+        if ($username === '') {
+            throw new Exception('Username cannot be empty.');
+        }
+
+        return $this->articleRepository->getByUsername($username);
     }
 
     public function getBySlug(string $slug)

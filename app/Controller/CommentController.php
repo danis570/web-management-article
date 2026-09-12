@@ -7,6 +7,7 @@ use app\Repository\ArticleRepository;
 use app\Repository\CommentLikeRepository;
 use app\Repository\CommentRepository;
 use app\Repository\SessionRepository;
+use app\Repository\UserRepository;
 use app\Service\ArticleService;
 use app\Service\CommentLikeService;
 use app\Service\CommentService;
@@ -61,10 +62,10 @@ class CommentController
                 $this->commentService
             );
 
-
+        $userRepository = new UserRepository($pdo);
         $this->articleService =
             new ArticleService(
-                $articleRepository
+                $articleRepository, $userRepository
             );
 
 

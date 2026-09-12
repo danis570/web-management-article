@@ -44,6 +44,34 @@ class TagRepository
         return $result ?: false;
     }
 
+    public function existsBySlug(
+        string $slug,
+        ?int $exceptId = null
+    ): bool {
+        if ($exceptId !== null) {
+            $stmt = $this->pdo->prepare("
+            SELECT 1
+            FROM tags
+            WHERE slug = ?
+            AND id != ?
+            LIMIT 1
+        ");
+
+            $stmt->execute([$slug, $exceptId]);
+        } else {
+            $stmt = $this->pdo->prepare("
+            SELECT 1
+            FROM tags
+            WHERE slug = ?
+            LIMIT 1
+        ");
+
+            $stmt->execute([$slug]);
+        }
+
+        return $stmt->fetchColumn() !== false;
+    }
+
     public function findBySlug(string $slug): Tag|false
     {
         $stmt = $this->pdo->prepare("

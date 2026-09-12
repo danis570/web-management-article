@@ -870,29 +870,44 @@
         'input',
         async function () {
 
+            // Hanya owner yang boleh mengelola collaborator
+            if (!isOwnerUser) {
+
+                this.value = '';
+
+                userSearchResult.innerHTML = `
+                <div style="
+                    padding: 12px;
+                    color: var(--dark);
+                ">
+                    Anda tidak dapat mengedit collaborator.
+                    Hanya pemilik artikel yang dapat
+                    menambahkan atau menghapus collaborator.
+                </div>
+            `;
+
+                userSearchResult.style.display = 'block';
+
+                return;
+            }
+
             const keyword =
                 this.value.trim();
-
 
             if (keyword === '') {
 
                 userSearchResult.innerHTML = '';
-
                 userSearchResult.style.display =
                     'none';
 
                 return;
-
             }
-
 
             try {
 
                 const response = await fetch(
-                    `/user/search?keyword=${encodeURIComponent(keyword)
-                    }`
+                    `/user/search?keyword=${encodeURIComponent(keyword)}`
                 );
-
 
                 if (!response.ok) {
 
@@ -902,10 +917,8 @@
 
                 }
 
-
                 const users =
                     await response.json();
-
 
                 renderUserSearch(users);
 
@@ -913,17 +926,14 @@
 
                 console.error(error);
 
-
                 userSearchResult.innerHTML = `
-                    <div style="padding: 12px;">
-                        Gagal mencari user.
-                    </div>
-                `;
-
+                <div style="padding: 12px;">
+                    Gagal mencari user.
+                </div>
+            `;
 
                 userSearchResult.style.display =
                     'block';
-
             }
 
         }

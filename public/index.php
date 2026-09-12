@@ -102,6 +102,7 @@ Router::add('POST', '/article/like', ArticleController::class, 'like');
 Router::add('POST', '/article/unlike', ArticleController::class, 'unlike');
 
 // Article Detail
+Router::add('GET', '/article/@{username}', ArticleController::class, 'userArticles');
 Router::add('GET', '/article/{slug}', ArticleController::class, 'detail');
 
 
@@ -109,8 +110,61 @@ Router::add('GET', '/article/{slug}', ArticleController::class, 'detail');
 // TAG
 // ============================================================
 
-Router::add('GET', '/tag/search', TagController::class, 'search');
+Router::add(
+    'GET',
+    '/tag',
+    TagController::class,
+    'index',
+    [AdminOnly::class]
+);
 
+Router::add(
+    'GET',
+    '/tag/add',
+    TagController::class,
+    'add',
+    [AdminOnly::class]
+);
+
+Router::add(
+    'POST',
+    '/tag/add',
+    TagController::class,
+    'postAdd',
+    [AdminOnly::class]
+);
+
+Router::add(
+    'GET',
+    '/tag/edit',
+    TagController::class,
+    'edit',
+    [AdminOnly::class]
+);
+
+Router::add(
+    'POST',
+    '/tag/edit',
+    TagController::class,
+    'postEdit',
+    [AdminOnly::class]
+);
+
+Router::add(
+    'POST',
+    '/tag/delete',
+    TagController::class,
+    'delete',
+    [AdminOnly::class]
+);
+
+// Tetap public
+Router::add(
+    'GET',
+    '/tag/search',
+    TagController::class,
+    'search'
+);
 
 // ============================================================
 // COMMENT

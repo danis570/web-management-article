@@ -20,6 +20,11 @@ class TagService
         $tag->name = trim($tag->name);
         $tag->slug = trim($tag->slug);
 
+        // Cek slug sudah digunakan
+        if ($this->tagRepository->existsBySlug($tag->slug)) {
+            throw new Exception('Slug already exists.');
+        }
+
         return $this->tagRepository->save($tag);
     }
 
@@ -84,6 +89,16 @@ class TagService
 
         $tag->name = trim($tag->name);
         $tag->slug = trim($tag->slug);
+
+        // Cek slug digunakan tag lain
+        if (
+            $this->tagRepository->existsBySlug(
+                $tag->slug,
+                $tag->id
+            )
+        ) {
+            throw new Exception('Slug already exists.');
+        }
 
         return $this->tagRepository->update($tag);
     }
