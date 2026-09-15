@@ -25,7 +25,7 @@
                     <li><a href="/article">Artikel</a></li>
                 <?php } ?>
 
-                <li><a href="/article">Alumni</a></li>
+                <li><a href="/gallery">Galleri</a></li>
                 <li><a href="/article">Program</a></li>
 
                 <?php if (($model['current'] ?? '') == 'login') { ?>

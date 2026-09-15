@@ -29,7 +29,8 @@ class ProfileService
         $profile->name = $request->name;
         $profile->position = $request->position;
         $profile->period = $request->period;
-        $profile->img = null;
+
+        $profile->img = 'default.png';
 
         if (
             $imgFileInfo !== null &&
@@ -50,6 +51,7 @@ class ProfileService
 
         return $this->profileRepository->save($profile);
     }
+
 
     public function getByUserId(int $userId): Profile
     {

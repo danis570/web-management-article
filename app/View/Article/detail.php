@@ -166,10 +166,7 @@
                         <?php if (!empty($model['article']['created_at'])): ?>
 
                             <span class="article-date">
-                                <?= date(
-                                    'd M Y',
-                                    strtotime($model['article']['created_at'])
-                                ) ?>
+                                <?= date('d M Y', strtotime(max($model['article']['updated_at'], $model['article']['created_at']))) ?>
                             </span>
 
                         <?php endif; ?>

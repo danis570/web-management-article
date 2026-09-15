@@ -134,10 +134,7 @@
 
                                         <span class="article-date">
 
-                                            <?= date(
-                                                'd M Y',
-                                                strtotime($article['created_at'])
-                                            ) ?>
+                                           <?= date('d M Y', strtotime(max($article['created_at'], $article['updated_at']))) ?>
 
                                         </span>
 

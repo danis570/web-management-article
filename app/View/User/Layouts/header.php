@@ -83,6 +83,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a href="/me/gallery"
+                                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; text-decoration: none; color: #000; font-weight: 500; font-size: 0.9rem;">
+                                    Galleri saya
+                                </a>
+                            </li>
+                            <li>
                                 <a href="/account"
                                     style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; text-decoration: none; color: #000; font-weight: 500; font-size: 0.9rem;">
                                     Pengaturan Akun
@@ -92,6 +98,12 @@
                                 <a href="/article"
                                      style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; text-decoration: none; color: #000; font-weight: 500; font-size: 0.9rem;">
                                     Artikel
+                                </a>
+                            </li>
+                            <li style="border-top: 2px solid #000; margin-top: 0.5rem; padding-top: 0.5rem;">
+                                <a href="/gallery"
+                                     style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; text-decoration: none; color: #000; font-weight: 500; font-size: 0.9rem;">
+                                    Galeri
                                 </a>
                             </li>
                             <li style="border-top: 2px solid #000; margin-top: 0.5rem; padding-top: 0.5rem;">

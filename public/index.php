@@ -6,6 +6,7 @@ use app\App\Router;
 use app\Controller\ArticleController;
 use app\Controller\AuthController;
 use app\Controller\CommentController;
+use app\Controller\GalleryController;
 use app\Controller\HomeController;
 use app\Controller\ProfileController;
 use app\Controller\TagController;
@@ -96,6 +97,22 @@ Router::add('POST', '/comment/delete', CommentController::class, 'postDelete', [
 Router::add('POST', '/comment/like', CommentController::class, 'postLike', [UserOnly::class]);
 Router::add('POST', '/comment/unlike', CommentController::class, 'postUnlike', [UserOnly::class]);
 
+// ============================================================
+// GALLERY
+// ============================================================
+
+// User Gallery
+Router::add('GET', '/gallery/add', GalleryController::class, 'add', [UserOnly::class]);
+Router::add('POST', '/gallery/add', GalleryController::class, 'postAdd', [UserOnly::class]);
+Router::add('GET', '/gallery/edit/{slug}', GalleryController::class, 'edit', [UserOnly::class]);
+Router::add('POST', '/gallery/edit/{slug}', GalleryController::class, 'postEdit', [UserOnly::class]);
+Router::add('POST', '/gallery/delete/{id}', GalleryController::class, 'delete', [UserOnly::class]);
+Router::add('GET', '/me/gallery', GalleryController::class, 'myGallery', [UserOnly::class]);
+
+
+// Public Gallery
+Router::add('GET', '/gallery', GalleryController::class, 'index');
+Router::add('GET', '/gallery/{slug}', GalleryController::class, 'detail');
 
 // ============================================================
 // RUN ROUTER
