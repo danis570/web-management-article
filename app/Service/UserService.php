@@ -321,6 +321,20 @@ class UserService
     }
 
 
+    public function getByUsername(string $username): User|false
+    {
+        $username = trim($username);
+
+        if ($username === '') {
+            throw new Exception('Username cannot be empty.');
+        }
+
+        return $this->userRepository->getByUsername($username);
+    }
+
+
+
+
     /*
     |--------------------------------------------------------------------------
     | GET USER BY ID

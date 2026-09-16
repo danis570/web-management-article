@@ -7,9 +7,15 @@ use app\App\Database;
 use app\App\View;
 use app\Model\UserChangeEmailRequest;
 use app\Model\UserChangePasswordRequest;
+use app\Repository\ArticleRepository;
+use app\Repository\GalleryImageRepository;
+use app\Repository\GalleryRepository;
 use app\Repository\ProfileRepository;
 use app\Repository\SessionRepository;
 use app\Repository\UserRepository;
+use app\Service\ArticleService;
+use app\Service\GalleryImageService;
+use app\Service\GalleryService;
 use app\Service\ProfileService;
 use app\Service\SessionService;
 use app\Service\UserService;
@@ -18,6 +24,11 @@ use Exception;
 class UserController extends BaseController
 {
     private UserService $userService;
+    private ArticleService $articleService;
+    private GalleryService $galleryService;
+    private GalleryImageService $galleryImageService;
+
+
 
     public function __construct()
     {
@@ -25,16 +36,55 @@ class UserController extends BaseController
 
         $userRepository = new UserRepository($pdo);
         $sessionRepository = new SessionRepository($pdo);
+        $articleRepository = new ArticleRepository($pdo);
+        $galleryRepository = new GalleryRepository($pdo);
 
         $this->userService = new UserService(
             $userRepository
         );
+        $galleryImageRepository = new GalleryImageRepository($pdo);
+        $this->galleryImageService = new GalleryImageService($galleryImageRepository);
+
+        $this->articleService = new ArticleService($articleRepository, $userRepository);
+        $this->galleryService = new GalleryService($galleryRepository);
 
         $sessionService = new SessionService($sessionRepository);
         $profileRepository = new ProfileRepository($pdo);
         $profileService = new ProfileService($profileRepository);
 
         parent::__construct($sessionService, $profileService);
+    }
+
+    public function index(): void
+    {
+        try {
+
+            $users = $this->userService->getAll();
+
+            $profiles = [];
+
+            foreach ($users as $user) {
+
+                $profile = $this->profileService
+                    ->getByUserId((int) $user['id']);
+
+                if ($profile) {
+                    $profiles[$user['id']] = $profile;
+                }
+            }
+
+            View::render('Public', '/Users/users', [
+                'title' => 'Users',
+                'users' => $users,
+                'profiles' => $profiles,
+            ]);
+
+        } catch (Exception $e) {
+
+            http_response_code(404);
+
+            echo $e->getMessage();
+        }
     }
 
     public function users(): void
@@ -235,6 +285,158 @@ class UserController extends BaseController
             exit;
         }
     }
+
+
+
+
+    public function profile(array $params): void
+    {
+        try {
+
+            $username = ltrim(
+                trim($params['username'] ?? ''),
+                '@'
+            );
+
+            if ($username === '') {
+                throw new Exception('Username cannot be empty.');
+            }
+
+            /*
+             * ==========================
+             * User
+             * ==========================
+             */
+
+            $user = $this->userService
+                ->getByUsername($username);
+
+            if (!$user) {
+                throw new Exception('User not found.');
+            }
+
+            /*
+             * ==========================
+             * Profile
+             * ==========================
+             */
+
+            $profile = $this->profileService
+                ->getByUserId($user->id);
+
+            if (!$profile) {
+                throw new Exception('Profile not found.');
+            }
+
+            /*
+             * ==========================
+             * Latest Posts
+             * ==========================
+             */
+
+            // Artikel
+            try {
+
+                $articles = $this->articleService
+                    ->getByUserId($user->id);
+
+            } catch (Exception $e) {
+
+                $articles = [];
+            }
+
+            // Gallery
+            try {
+
+                $galleries = $this->galleryService
+                    ->getByUserId($user->id);
+
+            } catch (Exception $e) {
+
+                $galleries = [];
+            }
+
+            /*
+             * ==========================
+             * Gallery Preview Images
+             * ==========================
+             */
+
+            $galleryImages = [];
+
+            foreach ($galleries as $gallery) {
+
+                $previewImage = $this->galleryImageService
+                    ->getFirstByGalleryId($gallery->id);
+
+                if ($previewImage) {
+
+                    $galleryImages[$gallery->id] = $previewImage;
+                }
+            }
+
+            /*
+             * ==========================
+             * Gabungkan Article + Gallery
+             * ==========================
+             */
+
+            $latestPosts = [];
+
+            foreach ($articles as $article) {
+
+                $latestPosts[] = [
+                    'type' => 'article',
+                    'data' => $article,
+                    'date' => $article['created_at'],
+                ];
+            }
+
+            foreach ($galleries as $gallery) {
+
+                $latestPosts[] = [
+                    'type' => 'gallery',
+                    'data' => $gallery,
+                    'date' => $gallery->createdAt,
+                ];
+            }
+
+            /*
+             * ==========================
+             * Urutkan dari terbaru
+             * ==========================
+             */
+
+            usort(
+                $latestPosts,
+                function ($a, $b) {
+                    return strtotime($b['date'])
+                        <=> strtotime($a['date']);
+                }
+            );
+
+            /*
+             * ==========================
+             * Render
+             * ==========================
+             */
+
+            View::render('Public', '/Users/detail', [
+                'title' => $profile->name,
+                'user' => $user,
+                'profile' => $profile,
+                'latestPosts' => $latestPosts,
+                'gallery_images' => $galleryImages,
+            ]);
+
+        } catch (Exception $e) {
+
+            http_response_code(404);
+
+            echo $e->getMessage();
+        }
+    }
+
 
 
 }

@@ -59,6 +59,41 @@ class UserRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    public function getByUsername(string $username): User|false
+    {
+        $sql = "
+        SELECT
+            id,
+            role,
+            email,
+            password
+        FROM users
+        WHERE SUBSTRING_INDEX(email, '@', 1) = ?
+        LIMIT 1
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$username]);
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$data) {
+            return false;
+        }
+
+        $user = new User();
+
+        $user->id = (int) $data['id'];
+        $user->role = UserRole::from($data['role']);
+        $user->email = $data['email'];
+        $user->password = $data['password'];
+
+        return $user;
+    }
+
+
+
     public function existsByEmailExceptUser(
         string $email,
         int $userId

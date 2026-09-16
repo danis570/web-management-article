@@ -464,7 +464,7 @@
             /* Mencegah input meluber keluar layar akibat padding */
         }
     }
-d
+
 
     /* =========================================================
    HEADER MOBILE (Tetap seperti bawaan Anda)

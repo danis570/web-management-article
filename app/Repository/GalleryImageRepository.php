@@ -35,6 +35,33 @@ class GalleryImageRepository
         return $galleryImage;
     }
 
+
+public function getFirstByGalleryId(int $galleryId): GalleryImage|false
+{
+    $stmt = $this->pdo->prepare("
+        SELECT
+            id,
+            gallery_id,
+            image,
+            caption,
+            created_at
+        FROM gallery_images
+        WHERE gallery_id = ?
+        ORDER BY id ASC
+        LIMIT 1
+    ");
+
+    $stmt->execute([$galleryId]);
+
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$row) {
+        return false;
+    }
+
+    return $this->mapToDomain($row);
+}
+
     public function findById(int $id): GalleryImage|false
     {
         $stmt = $this->pdo->prepare("

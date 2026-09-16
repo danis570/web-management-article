@@ -5,17 +5,20 @@ namespace app\Controller;
 use app\App\BaseController;
 use app\App\Database;
 use app\App\View;
+use app\Repository\ArticleRepository;
 use app\Repository\GalleryImageRepository;
 use app\Repository\GalleryRepository;
 use app\Repository\ProfileRepository;
 use app\Repository\SessionRepository;
 use app\Repository\UserRepository;
+use app\Service\ArticleService;
 use app\Service\GalleryImageService;
 use app\Service\GalleryService;
 use app\Service\ProfileService;
 use app\Service\SessionService;
 use app\Service\UserService;
 use Exception;
+use UserRole;
 
 class GalleryController extends BaseController
 {
@@ -25,6 +28,7 @@ class GalleryController extends BaseController
     private GalleryImageRepository $galleryImageRepository;
     private GalleryImageService $galleryImageService;
     private UserService $userService;
+    private ArticleService $articleService;
 
 
     public function __construct()
@@ -55,7 +59,9 @@ class GalleryController extends BaseController
                 $profileRepository
             );
 
+        $artcleRepository = new ArticleRepository($pdo);
         $userRepository = new UserRepository($pdo);
+        $this->articleService = new ArticleService($artcleRepository, $userRepository);
         $this->userService = new UserService($userRepository);
 
         $sessionRepository =
@@ -72,16 +78,6 @@ class GalleryController extends BaseController
             $profileService
         );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PUBLIC GALLERY
-    |--------------------------------------------------------------------------
-    |
-    | GET /gallery
-    |
-    */
 
     public function index(): void
     {
@@ -130,6 +126,51 @@ class GalleryController extends BaseController
             '/Gallery/gallery',
             $data
         );
+    }
+
+    public function userGallery(array $params): void
+    {
+        try {
+            $username = ltrim(
+                trim($params['username'] ?? ''),
+                '@'
+            );
+
+            if ($username === '') {
+                throw new Exception('Username cannot be empty.');
+            }
+
+            $userProfile = $this->articleService
+                ->getByUsername($username);
+
+            if (!$userProfile) {
+                throw new Exception('User not found.');
+            }
+
+            $galleries = $this->galleryService
+                ->getByUserId($userProfile->id);
+
+            $galleryImages = [];
+
+            foreach ($galleries as $gallery) {
+                $images = $this->galleryImageService
+                    ->getByGalleryId($gallery->id);
+
+                $galleryImages[$gallery->id] =
+                    $images[0] ?? null;
+            }
+
+            View::render('Public', '/Gallery/user', [
+                'title' => "Gallery $username",
+                'user' => $userProfile,
+                'username' => $username,
+                'galleries' => $galleries,
+                'galleryImages' => $galleryImages,
+            ]);
+
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
     }
 
 
@@ -205,6 +246,13 @@ class GalleryController extends BaseController
             $data['gallery'] = $gallery;
             $data['images'] = $images;
             $data['profile'] = $profile;
+            $gallery = $this->galleryService->getBySlug($slug);
+
+
+            $owner = $this->userService
+                ->getUserById($gallery->userId);
+
+            $data['owner'] = $owner;
 
         } catch (Exception $e) {
             $data['error'] = $e->getMessage();

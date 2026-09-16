@@ -9,10 +9,8 @@
                 <div class="article-header" style="display: flex; justify-content: space-between; align-items: center;">
 
                     <h3>
-                        <span id="article-title-prefix">Semua</span>
-
                         <span class="highlight highlight-yellow" id="article-title">
-                            <?= htmlspecialchars($model['title'] ?? 'Artikel') ?>
+                           Artikel
                         </span>
                     </h3>
 

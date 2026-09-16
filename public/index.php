@@ -49,6 +49,9 @@ Router::add('GET', '/logout', AuthController::class, 'logout', [UserAndAdmin::cl
 Router::add('GET', '/profile', ProfileController::class, 'profile', [UserOnly::class]);
 Router::add('POST', '/profile', ProfileController::class, 'postUpdate', [UserOnly::class]);
 
+Router::add('GET', '/@{username}', UserController::class, 'profile');
+Router::add('GET', '/user', UserController::class, 'index');
+
 Router::add('GET', '/user/search', UserController::class, 'search');
 Router::add('GET', '/account', UserController::class, 'account', [UserOnly::class]);
 Router::add('POST', '/account/email', UserController::class, 'postChangeEmail', [UserOnly::class]);
@@ -112,7 +115,9 @@ Router::add('GET', '/me/gallery', GalleryController::class, 'myGallery', [UserOn
 
 // Public Gallery
 Router::add('GET', '/gallery', GalleryController::class, 'index');
+Router::add('GET', '/gallery/@{username}', GalleryController::class, 'userGallery');
 Router::add('GET', '/gallery/{slug}', GalleryController::class, 'detail');
+
 
 // ============================================================
 // RUN ROUTER

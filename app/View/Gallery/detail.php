@@ -9,8 +9,6 @@
                 <a href="/">Home</a>
                 <span>/</span>
                 <a href="/gallery">Gallery</a>
-                <span>/</span>
-                <span>Detail</span>
             </nav>
 
 
@@ -110,22 +108,52 @@
 
                         <?php if (!empty($model['profile'])): ?>
 
-                            <div class="gallery-author">
+                            <?php
+                            $email = $model['owner']->email ?? '';
 
-                                <?php if (!empty($model['profile']->img)): ?>
+                            $username = $email !== ''
+                                ? explode('@', $email)[0]
+                                : '';
+                            ?>
 
-                                    <img src="/uploads/users/<?= htmlspecialchars($model['profile']->img) ?>"
-                                        alt="<?= htmlspecialchars($model['profile']->name) ?>" class="gallery-author-img">
+                            <?php if ($username !== ''): ?>
 
-                                <?php endif; ?>
+                                <a href="/gallery/@<?= urlencode($username) ?>" class="gallery-author">
 
-                                <span>
-                                    <?= htmlspecialchars($model['profile']->name) ?>
-                                </span>
+                                    <?php if (!empty($model['profile']->img)): ?>
 
-                            </div>
+                                        <img src="/uploads/users/<?= htmlspecialchars($model['profile']->img) ?>"
+                                            alt="<?= htmlspecialchars($model['profile']->name) ?>" class="gallery-author-img">
+
+                                    <?php endif; ?>
+
+                                    <span>
+                                        <?= htmlspecialchars($model['profile']->name) ?>
+                                    </span>
+
+                                </a>
+
+                            <?php else: ?>
+
+                                <div class="gallery-author">
+
+                                    <?php if (!empty($model['profile']->img)): ?>
+
+                                        <img src="/uploads/users/<?= htmlspecialchars($model['profile']->img) ?>"
+                                            alt="<?= htmlspecialchars($model['profile']->name) ?>" class="gallery-author-img">
+
+                                    <?php endif; ?>
+
+                                    <span>
+                                        <?= htmlspecialchars($model['profile']->name) ?>
+                                    </span>
+
+                                </div>
+
+                            <?php endif; ?>
 
                         <?php endif; ?>
+
 
                         <?php if (!empty($model['gallery']->createdAt)): ?>
 
@@ -367,85 +395,85 @@
     }
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const slides      = document.querySelectorAll('.gallery-slide img');
-    const lightbox    = document.getElementById('gallery-lightbox');
-    const lightboxImg = document.getElementById('lightbox-image');
-    const btnClose    = document.getElementById('lightbox-close');
-    const btnPrev     = document.getElementById('lightbox-prev');
-    const btnNext     = document.getElementById('lightbox-next');
+        const slides = document.querySelectorAll('.gallery-slide img');
+        const lightbox = document.getElementById('gallery-lightbox');
+        const lightboxImg = document.getElementById('lightbox-image');
+        const btnClose = document.getElementById('lightbox-close');
+        const btnPrev = document.getElementById('lightbox-prev');
+        const btnNext = document.getElementById('lightbox-next');
 
-    if (!slides.length || !lightbox) return;
+        if (!slides.length || !lightbox) return;
 
-    let current = 0;
+        let current = 0;
 
-    /* Bangun daftar src dari gambar slider */
-    const images = Array.from(slides).map(img => ({
-        src: img.src,
-        alt: img.alt || ''
-    }));
+        /* Bangun daftar src dari gambar slider */
+        const images = Array.from(slides).map(img => ({
+            src: img.src,
+            alt: img.alt || ''
+        }));
 
-    function openLightbox(index) {
-        current = index;
+        function openLightbox(index) {
+            current = index;
 
-        lightboxImg.src = images[current].src;
-        lightboxImg.alt = images[current].alt;
+            lightboxImg.src = images[current].src;
+            lightboxImg.alt = images[current].alt;
 
-        lightbox.classList.add('active');
-        lightbox.setAttribute('aria-hidden', 'false');
+            lightbox.classList.add('active');
+            lightbox.setAttribute('aria-hidden', 'false');
 
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeLightbox() {
-        lightbox.classList.remove('active');
-        lightbox.setAttribute('aria-hidden', 'true');
-
-        document.body.style.overflow = '';
-
-        lightboxImg.src = '';
-    }
-
-    function showImage(index) {
-        if (index >= images.length) index = 0;
-        if (index < 0) index = images.length - 1;
-
-        current = index;
-
-        lightboxImg.src = images[current].src;
-        lightboxImg.alt = images[current].alt;
-    }
-
-    /* Klik gambar → buka lightbox */
-    slides.forEach((img, i) => {
-        img.addEventListener('click', () => openLightbox(i));
-    });
-
-    /* Tombol close */
-    btnClose.addEventListener('click', closeLightbox);
-
-    /* Klik area gelap → close */
-    lightbox.addEventListener('click', function (e) {
-        if (e.target === lightbox || e.target.classList.contains('lightbox-stage')) {
-            closeLightbox();
+            document.body.style.overflow = 'hidden';
         }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            lightbox.setAttribute('aria-hidden', 'true');
+
+            document.body.style.overflow = '';
+
+            lightboxImg.src = '';
+        }
+
+        function showImage(index) {
+            if (index >= images.length) index = 0;
+            if (index < 0) index = images.length - 1;
+
+            current = index;
+
+            lightboxImg.src = images[current].src;
+            lightboxImg.alt = images[current].alt;
+        }
+
+        /* Klik gambar → buka lightbox */
+        slides.forEach((img, i) => {
+            img.addEventListener('click', () => openLightbox(i));
+        });
+
+        /* Tombol close */
+        btnClose.addEventListener('click', closeLightbox);
+
+        /* Klik area gelap → close */
+        lightbox.addEventListener('click', function (e) {
+            if (e.target === lightbox || e.target.classList.contains('lightbox-stage')) {
+                closeLightbox();
+            }
+        });
+
+        /* Navigasi */
+        if (btnPrev) btnPrev.addEventListener('click', () => showImage(current - 1));
+        if (btnNext) btnNext.addEventListener('click', () => showImage(current + 1));
+
+        /* Keyboard */
+        document.addEventListener('keydown', function (e) {
+            if (!lightbox.classList.contains('active')) return;
+
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') showImage(current - 1);
+            if (e.key === 'ArrowRight') showImage(current + 1);
+        });
+
     });
-
-    /* Navigasi */
-    if (btnPrev) btnPrev.addEventListener('click', () => showImage(current - 1));
-    if (btnNext) btnNext.addEventListener('click', () => showImage(current + 1));
-
-    /* Keyboard */
-    document.addEventListener('keydown', function (e) {
-        if (!lightbox.classList.contains('active')) return;
-
-        if (e.key === 'Escape')      closeLightbox();
-        if (e.key === 'ArrowLeft')   showImage(current - 1);
-        if (e.key === 'ArrowRight')  showImage(current + 1);
-    });
-
-});
 </script>
 
 <style>

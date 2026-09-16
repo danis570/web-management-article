@@ -106,6 +106,15 @@ class GalleryImageService
             ->update($galleryImage);
     }
 
+
+public function getFirstByGalleryId(int $galleryId): GalleryImage|false
+{
+    return $this->galleryImageRepository
+        ->getFirstByGalleryId($galleryId);
+}
+
+
+
     public function deleteById(int $id): void
     {
         if ($id <= 0) {

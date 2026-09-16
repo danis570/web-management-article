@@ -26,7 +26,7 @@
                 <?php } ?>
 
                 <li><a href="/gallery">Galleri</a></li>
-                <li><a href="/article">Program</a></li>
+                <li><a href="/user">Pengguna</a></li>
 
                 <?php if (($model['current'] ?? '') == 'login') { ?>
                     <li><a href="/login" class="active">Login</a></li>
