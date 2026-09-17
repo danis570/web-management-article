@@ -11,30 +11,115 @@
 </head>
 
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="container nav-container">
+
+        <!-- LOGO -->
+        <a href="/" class="logo">
+            <div class="logo-icon">PR</div>
+            <span class="logo-text">IPNU & IPPNU Desa Ketambul</span>
+        </a>
+
+        <!-- DESKTOP MENU -->
+        <ul class="menu">
+            <li>
+                <a href="/article" class="<?= ($model['current'] ?? '') == 'article' ? 'active' : '' ?>">
+                    Artikel
+                </a>
+            </li>
+            <li><a href="/gallery">Galleri</a></li>
+            <li><a href="/user">Pengguna</a></li>
+            <li>
+                <a href="/login" class="<?= ($model['current'] ?? '') == 'login' ? 'active' : '' ?>">
+                    Login
+                </a>
+            </li>
+        </ul>
+
+        <!-- MOBILE MENU BUTTON -->
+        <button class="mobile-menu-button" id="menuBtn" aria-label="Buka menu" aria-expanded="false">
+            ☰
+        </button>
+
+    </div>
+</nav>
+
+
+<!-- =========================================================
+     MOBILE MENU OVERLAY
+========================================================= -->
+<div class="mobile-menu-overlay" id="mobileMenu" aria-hidden="true">
+
+    <!-- HEADER — SAMA PERSIS DENGAN NAVBAR -->
+    <div class="navbar mobile-menu-navbar">
         <div class="container nav-container">
+
             <a href="/" class="logo">
                 <div class="logo-icon">PR</div>
-                IPNU & IPPNU Desa Ketambul
+                <span class="logo-text">IPNU & IPPNU Desa Ketambul</span>
             </a>
-            <ul class="menu">
-                <?php if (($model['current'] ?? '') == 'article') { ?>
-                    <li><a href="/article" class="active">Artikel</a></li>
-                <?php } else { ?>
-                    <li><a href="/article">Artikel</a></li>
-                <?php } ?>
 
-                <li><a href="/gallery">Galleri</a></li>
-                <li><a href="/user">Pengguna</a></li>
+            <button type="button"
+                    class="mobile-menu-button"
+                    id="menuClose"
+                    aria-label="Tutup menu">
+                &times;
+            </button>
 
-                <?php if (($model['current'] ?? '') == 'login') { ?>
-                    <li><a href="/login" class="active">Login</a></li>
-                <?php } else { ?>
-                    <li><a href="/login">Login</a></li>
-                <?php } ?>
-
-            </ul>
-             <button class="mobile-menu-button" id="menuBtn">☰</button>
         </div>
-    </nav>
+    </div>
+
+
+    <!-- BODY: Menu List -->
+    <div class="mobile-menu-body">
+
+        <div class="mobile-menu-label">MENU UTAMA</div>
+
+        <ul class="mobile-menu-list">
+
+            <li>
+                <a href="/article"
+                   class="mobile-menu-item <?= ($model['current'] ?? '') == 'article' ? 'mobile-menu-item--active' : '' ?>">
+                    ARTIKEL
+                </a>
+            </li>
+
+            <li>
+                <a href="/gallery"
+                   class="mobile-menu-item <?= ($model['current'] ?? '') == 'gallery' ? 'mobile-menu-item--active' : '' ?>">
+                    GALLERI
+                </a>
+            </li>
+
+            <li>
+                <a href="/user"
+                   class="mobile-menu-item <?= ($model['current'] ?? '') == 'user' ? 'mobile-menu-item--active' : '' ?>">
+                    PENGGUNA
+                </a>
+            </li>
+
+            <?php if ($model['isLoggedIn'] ?? false): ?>
+
+                <li>
+                    <a href="/logout" class="mobile-menu-item">
+                        KELUAR
+                    </a>
+                </li>
+
+            <?php else: ?>
+
+                <li>
+                    <a href="/login"
+                       class="mobile-menu-item <?= ($model['current'] ?? '') == 'login' ? 'mobile-menu-item--active' : '' ?>">
+                        LOGIN
+                    </a>
+                </li>
+
+            <?php endif; ?>
+
+        </ul>
+
+    </div>
+
+</div>

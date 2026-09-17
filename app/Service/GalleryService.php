@@ -70,12 +70,22 @@ class GalleryService
         return $this->galleryRepository->getByUserId($userId);
     }
 
+    public function getLatestGalleries(
+        int $currentGalleryId,
+        int $limit = 4
+    ): array {
+        return $this->galleryRepository
+            ->getLatestGalleries(
+                $currentGalleryId,
+                $limit
+            );
+    }
+
     public function update(Gallery $gallery): Gallery
     {
         $this->validation(
             $gallery->userId,
-            $gallery->caption,
-            $gallery->slug
+            $gallery->caption
         );
 
         return $this->galleryRepository->update($gallery);

@@ -505,4 +505,312 @@ class ArticleRepository
 
         return $response;
     }
+
+
+
+    public function getLatestArticles(
+        int $currentArticleId,
+        int $limit = 4
+    ): array {
+
+        $sql = "
+        SELECT
+            a.id,
+            a.slug,
+            a.title,
+            a.created_at,
+            a.updated_at,
+
+            /* =====================================================
+               STATISTIK ARTIKEL
+            ====================================================== */
+
+            a.view_count,
+            a.like_count,
+
+            (
+                SELECT COUNT(*)
+                FROM comments c
+                WHERE c.article_id = a.id
+            ) AS comment_count,
+
+
+            /* =====================================================
+               GAMBAR UTAMA ARTIKEL
+            ====================================================== */
+
+            (
+                SELECT ai.image
+                FROM article_images ai
+                WHERE ai.article_id = a.id
+                ORDER BY ai.id ASC
+                LIMIT 1
+            ) AS image,
+
+
+            /* =====================================================
+               AUTHOR ARTIKEL
+            ====================================================== */
+
+            (
+                SELECT GROUP_CONCAT(
+                    DISTINCT p.name
+                    ORDER BY p.name ASC
+                    SEPARATOR ', '
+                )
+                FROM article_user au
+                JOIN profiles p
+                    ON p.user_id = au.user_id
+                WHERE au.article_id = a.id
+            ) AS authors
+
+
+        FROM articles a
+
+
+        /* =====================================================
+           FILTER
+        ====================================================== */
+
+        WHERE
+            a.id != :current_id
+            AND a.status = 'published'
+            AND a.deleted_at IS NULL
+
+
+        /* =====================================================
+           URUTKAN ARTIKEL TERBARU
+        ====================================================== */
+
+        ORDER BY
+            a.created_at DESC
+
+
+        LIMIT :limit
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->bindValue(
+            ':current_id',
+            $currentArticleId,
+            PDO::PARAM_INT
+        );
+
+        $stmt->bindValue(
+            ':limit',
+            $limit,
+            PDO::PARAM_INT
+        );
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function getRecommendedArticles(
+        int $currentArticleId,
+        int $limit = 4
+    ): array {
+
+        $sql = "
+        SELECT
+            a.id,
+            a.slug,
+            a.title,
+            a.created_at,
+            a.updated_at,
+
+            /* =====================================================
+               STATISTIK ARTIKEL
+            ====================================================== */
+
+            a.view_count,
+            a.like_count,
+
+            (
+                SELECT COUNT(*)
+                FROM comments c
+                WHERE c.article_id = a.id
+            ) AS comment_count,
+
+
+            /* =====================================================
+               GAMBAR UTAMA ARTIKEL
+            ====================================================== */
+
+            (
+                SELECT ai.image
+                FROM article_images ai
+                WHERE ai.article_id = a.id
+                ORDER BY ai.id ASC
+                LIMIT 1
+            ) AS image,
+
+
+            /* =====================================================
+               AUTHOR ARTIKEL
+            ====================================================== */
+
+            (
+                SELECT GROUP_CONCAT(
+                    DISTINCT p.name
+                    ORDER BY p.name ASC
+                    SEPARATOR ', '
+                )
+                FROM article_user au
+                JOIN profiles p
+                    ON p.user_id = au.user_id
+                WHERE au.article_id = a.id
+            ) AS authors
+
+
+        FROM articles a
+
+
+        /* =====================================================
+           FILTER
+        ====================================================== */
+
+        WHERE
+            a.id != :current_id
+            AND a.status = 'published'
+            AND a.deleted_at IS NULL
+
+
+        /* =====================================================
+           URUTKAN BERDASARKAN LIKE
+        ====================================================== */
+
+        ORDER BY
+            a.like_count DESC,
+            a.view_count DESC,
+            a.created_at DESC
+
+
+        LIMIT :limit
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->bindValue(
+            ':current_id',
+            $currentArticleId,
+            PDO::PARAM_INT
+        );
+
+        $stmt->bindValue(
+            ':limit',
+            $limit,
+            PDO::PARAM_INT
+        );
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function getLeastViewedArticles(
+        int $currentArticleId,
+        int $limit = 4
+    ): array {
+
+        $sql = "
+        SELECT
+            a.id,
+            a.slug,
+            a.title,
+            a.created_at,
+            a.updated_at,
+
+            /* =====================================================
+               STATISTIK ARTIKEL
+            ====================================================== */
+
+            a.view_count,
+            a.like_count,
+
+            (
+                SELECT COUNT(*)
+                FROM comments c
+                WHERE c.article_id = a.id
+            ) AS comment_count,
+
+
+            /* =====================================================
+               GAMBAR UTAMA ARTIKEL
+            ====================================================== */
+
+            (
+                SELECT ai.image
+                FROM article_images ai
+                WHERE ai.article_id = a.id
+                ORDER BY ai.id ASC
+                LIMIT 1
+            ) AS image,
+
+
+            /* =====================================================
+               AUTHOR ARTIKEL
+            ====================================================== */
+
+            (
+                SELECT GROUP_CONCAT(
+                    DISTINCT p.name
+                    ORDER BY p.name ASC
+                    SEPARATOR ', '
+                )
+                FROM article_user au
+                JOIN profiles p
+                    ON p.user_id = au.user_id
+                WHERE au.article_id = a.id
+            ) AS authors
+
+
+        FROM articles a
+
+
+        /* =====================================================
+           FILTER
+        ====================================================== */
+
+        WHERE
+            a.id != :current_id
+            AND a.status = 'published'
+            AND a.deleted_at IS NULL
+
+
+        /* =====================================================
+           URUTKAN BERDASARKAN VIEW TERKECIL
+        ====================================================== */
+
+        ORDER BY
+            a.view_count ASC,
+            a.created_at DESC
+
+
+        LIMIT :limit
+    ";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->bindValue(
+            ':current_id',
+            $currentArticleId,
+            PDO::PARAM_INT
+        );
+
+        $stmt->bindValue(
+            ':limit',
+            $limit,
+            PDO::PARAM_INT
+        );
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }

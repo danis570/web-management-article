@@ -289,7 +289,11 @@
 
         display: grid;
 
-        grid-template-columns: repeat(4, 1fr);
+        /*
+    Default: 8 kolom di layar besar.
+    */
+
+        grid-template-columns: repeat(8, 1fr);
 
         gap: 1.5rem;
 
@@ -730,23 +734,51 @@
 
 
     /* =========================================================
-   RESPONSIVE — 1000px
+   RESPONSIVE — 1400px (6 KOLOM)
 ========================================================= */
 
-    @media (max-width: 1000px) {
+    @media (max-width: 1399px) {
 
         .user-grid {
 
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(6, 1fr);
         }
     }
 
 
     /* =========================================================
-   RESPONSIVE — 768px
+   RESPONSIVE — 1200px (5 KOLOM)
 ========================================================= */
 
-    @media (max-width: 768px) {
+    @media (max-width: 1199px) {
+
+        .user-grid {
+
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+
+
+    /* =========================================================
+   RESPONSIVE — 1000px (4 KOLOM)
+========================================================= */
+
+    @media (max-width: 999px) {
+
+        .user-grid {
+
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 1.25rem;
+        }
+    }
+
+
+    /* =========================================================
+   RESPONSIVE — 768px (4 KOLOM — TETAP)
+========================================================= */
+
+    @media (max-width: 767px) {
 
         .user-header {
 
@@ -778,7 +810,13 @@
 
         .user-grid {
 
-            grid-template-columns: repeat(2, 1fr);
+            /*
+        KUNCI: tetap 4 kolom.
+        */
+
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 1rem;
         }
 
 
@@ -788,11 +826,52 @@
 
             text-align: center;
         }
+
+
+        .user-card .user-card-content {
+
+            padding-top: 12px;
+        }
+
+
+        .user-card .user-card-header-box {
+
+            padding-left: 0.75rem;
+
+            padding-right: 0.75rem;
+        }
+
+
+        .user-card .user-card-meta {
+
+            margin-top: 0.5rem;
+
+            padding-left: 0.75rem;
+
+            padding-right: 0.75rem;
+
+            padding-bottom: 0.75rem;
+
+            gap: 0.125rem;
+        }
+
+
+        .user-card .user-card-name {
+
+            font-size: 0.85rem;
+        }
+
+
+        .user-card .user-card-position,
+        .user-card .user-card-username {
+
+            font-size: 0.7rem;
+        }
     }
 
 
     /* =========================================================
-   RESPONSIVE — 480px
+   RESPONSIVE — 480px (4 KOLOM — TETAP)
 ========================================================= */
 
     @media (max-width: 480px) {
@@ -805,31 +884,54 @@
 
         .user-grid {
 
-            grid-template-columns: 1fr;
+            /*
+        Tetap 4 kolom, jangan turun.
+        */
+
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 0.5rem;
         }
 
 
         .user-card .user-card-name {
 
-            font-size: 1.1rem;
+            font-size: 0.75rem;
+        }
+
+
+        .user-card .user-card-content {
+
+            padding-top: 10px;
         }
 
 
         .user-card .user-card-header-box {
 
-            padding-left: 1.25rem;
+            padding-left: 0.5rem;
 
-            padding-right: 1.25rem;
+            padding-right: 0.5rem;
         }
 
 
         .user-card .user-card-meta {
 
-            padding-left: 1.25rem;
+            margin-top: 0.25rem;
 
-            padding-right: 1.25rem;
+            padding-left: 0.5rem;
 
-            padding-bottom: 1.25rem;
+            padding-right: 0.5rem;
+
+            padding-bottom: 0.5rem;
+
+            gap: 0.125rem;
+        }
+
+
+        .user-card .user-card-position,
+        .user-card .user-card-username {
+
+            font-size: 0.6rem;
         }
     }
 </style>

@@ -403,6 +403,35 @@ class ArticleController extends BaseController
                     $commentUserId
                 );
 
+            /*
+            |--------------------------------------------------------------------------
+            | Related Articles
+            |--------------------------------------------------------------------------
+            */
+
+            // Artikel terbaru
+            $data['latestArticles'] =
+                $this->articleService->getLatestArticles(
+                    (int) $article['id'],
+                    4
+                );
+
+
+            // Artikel rekomendasi
+            $data['recommendedArticles'] =
+                $this->articleService->getRecommendedArticles(
+                    (int) $article['id'],
+                    4
+                );
+
+
+            // Artikel paling sedikit dilihat
+            $data['leastViewedArticles'] =
+                $this->articleService->getLeastViewedArticles(
+                    (int) $article['id'],
+                    4
+                );
+
         } catch (Exception $e) {
 
             $data['error'] =

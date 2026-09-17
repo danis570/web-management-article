@@ -57,7 +57,7 @@
     .grid-cols-2,
     .grid-cols-3,
     .grid-cols-4 {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
@@ -102,7 +102,7 @@
     .grid-cols-2,
     .grid-cols-3,
     .grid-cols-4 {
-        grid-template-columns: 1fr;
+         grid-template-columns: repeat(2, 1fr);
     }
 
     .footer-content {
@@ -174,5 +174,11 @@
         width: 100% !important;
         box-sizing: border-box;
         /* Memastikan border tebal neo-brutalism tidak merusak lebar 100% */
+    }
+
+    .grid-cols-2,
+    .grid-cols-3,
+    .grid-cols-4 {
+        grid-template-columns: repeat(1, 1fr);
     }
 }

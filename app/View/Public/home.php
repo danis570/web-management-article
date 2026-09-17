@@ -95,23 +95,12 @@
                 <p>Website resmi Pimpinan Ranting (PR) Ikatan Pelajar Nahdlatul Ulama (IPNU) dan Ikatan Pelajar Putri
                     Nahdlatul Ulama (IPPNU) Desa Ketambul.</p>
                 <div class="neo-button-group">
-                    <a href="#components" class="neo-btn">Pengurus Aktif</a>
+                    <a href="#components" class="neo-btn">Struktur Organisasi</a>
                     <a href="#examples" class="neo-btn neo-btn-secondary">Kegiatan Terdekat</a>
                 </div>
             </div>
             <div class="hero-animation">
-                <div class="shape1 pulse-shape"
-                    style="position: absolute; width: 80px; height: 80px; background-color: var(--primary); border: 4px solid var(--dark); top: 20%; left: 30%;">
-                </div>
-                <div class="shape2"
-                    style="position: absolute; width: 120px; height: 120px; background-color: var(--yellow); border: 4px solid var(--dark); bottom: 20%; right: 20%;">
-                </div>
-                <div class="shape3"
-                    style="position: absolute; width: 60px; height: 60px; background-color: var(--accent); border: 4px solid var(--dark); bottom: 30%; left: 20%;">
-                </div>
-                <div class="rotate-circle"
-                    style="position: absolute; width: 100px; height: 100px; border: 4px solid var(--dark); border-radius: 50%; top: 30%; right: 30%;">
-                </div>
+
             </div>
         </div>
     </div>
@@ -171,14 +160,332 @@
 </script>
 
 <!-- Images -->
-<section id="components" style="margin-bottom: 4rem;">
+<section id="components" class="hero-photos">
+
     <div class="container">
+
         <div class="component-example">
-            <h3>Foto Kegiatan Terbaru</h3>
+
+            <!-- HEADER -->
+            <div class="dummy-articles-header">
+
+                <h3>
+                    <span class="highlight highlight-yellow">
+                        Foto Kegiatan Terbaru
+                    </span>
+                </h3>
+
+                <p class="dummy-articles-subtitle">
+                    Dokumentasi kegiatan IPNU & IPPNU Desa Ketambul
+                </p>
+
+            </div>
+
+
+            <!-- GRID FOTO -->
             <div class="grid grid-cols-2 gap-grid-md mt-md">
                 <img src="/1.png" alt="Placeholder" class="neo-image">
                 <img src="/2.png" alt="Placeholder" class="neo-image">
             </div>
+
+
+            <!-- CTA "Lihat Semua Foto" -->
+            <div class="dummy-articles-footer">
+                <a href="/gallery" class="neo-btn">
+                    Lihat Semua Foto
+                </a>
+            </div>
+
         </div>
+
     </div>
+
 </section>
+
+<!-- =========================================================
+     DUMMY ARTICLES
+========================================================= -->
+<section id="articles" class="dummy-articles">
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="dummy-articles-header">
+
+            <h3>
+                <span class="highlight highlight-yellow">
+                    Artikel Terbaru
+                </span>
+            </h3>
+
+            <p class="dummy-articles-subtitle">
+                Berita dan informasi terbaru dari IPNU & IPPNU Desa Ketambul
+            </p>
+
+        </div>
+
+
+        <!-- GRID -->
+        <div class="grid grid-cols-3 gap-grid-md dummy-articles-grid">
+
+            <!-- DUMMY 1 -->
+            <a href="#" class="neo-card article-card">
+
+                <div class="article-image">
+                    <img src="/1.png" alt="Dummy Artikel 1" loading="lazy">
+                </div>
+
+                <div class="article-content">
+
+                    <div class="article-header-box">
+                        <h4 class="article-title">
+                            Rapat Pengurus 2026 Berjalan Lancar di Aula Desa
+                        </h4>
+                    </div>
+
+                    <div class="article-author-info">
+                        <span class="article-author-name">Admin IPNU</span>
+                        <span class="article-date">13 Sep 2026</span>
+                        <span class="article-view-count">👁 24</span>
+                    </div>
+
+                </div>
+
+            </a>
+
+
+            <!-- DUMMY 2 -->
+            <a href="#" class="neo-card article-card">
+
+                <div class="article-image">
+                    <img src="/2.png" alt="Dummy Artikel 2" loading="lazy">
+                </div>
+
+                <div class="article-content">
+
+                    <div class="article-header-box">
+                        <h4 class="article-title">
+                            Tips Membaca Cepat untuk Pelajar & Santri
+                        </h4>
+                    </div>
+
+                    <div class="article-author-info">
+                        <span class="article-author-name">Admin IPPNU</span>
+                        <span class="article-date">12 Sep 2026</span>
+                        <span class="article-view-count">👁 18</span>
+                    </div>
+
+                </div>
+
+            </a>
+
+
+            <!-- DUMMY 3 -->
+            <a href="#" class="neo-card article-card">
+
+                <div class="article-image">
+                    <img src="/1.png" alt="Dummy Artikel 3" loading="lazy">
+                </div>
+
+                <div class="article-content">
+
+                    <div class="article-header-box">
+                        <h4 class="article-title">
+                            Ketua Baru Akan Memberikan Instruksi Minggu Depan
+                        </h4>
+                    </div>
+
+                    <div class="article-author-info">
+                        <span class="article-author-name">Admin</span>
+                        <span class="article-date">11 Sep 2026</span>
+                        <span class="article-view-count">👁 42</span>
+                    </div>
+
+                </div>
+
+            </a>
+
+
+            <!-- DUMMY 4 -->
+            <a href="#" class="neo-card article-card">
+
+                <div class="article-image">
+                    <img src="/2.png" alt="Dummy Artikel 4" loading="lazy">
+                </div>
+
+                <div class="article-content">
+
+                    <div class="article-header-box">
+                        <h4 class="article-title">
+                            Kegiatan Sosial IPNU & IPPNU di Bulan September
+                        </h4>
+                    </div>
+
+                    <div class="article-author-info">
+                        <span class="article-author-name">Admin IPNU</span>
+                        <span class="article-date">10 Sep 2026</span>
+                        <span class="article-view-count">👁 15</span>
+                    </div>
+
+                </div>
+
+            </a>
+
+
+            <!-- DUMMY 5 -->
+            <a href="#" class="neo-card article-card">
+
+                <div class="article-image">
+                    <img src="/1.png" alt="Dummy Artikel 5" loading="lazy">
+                </div>
+
+                <div class="article-content">
+
+                    <div class="article-header-box">
+                        <h4 class="article-title">
+                            Pelatihan Kepemimpinan untuk Anggota Baru
+                        </h4>
+                    </div>
+
+                    <div class="article-author-info">
+                        <span class="article-author-name">Admin IPPNU</span>
+                        <span class="article-date">09 Sep 2026</span>
+                        <span class="article-view-count">👁 30</span>
+                    </div>
+
+                </div>
+
+            </a>
+
+
+            <!-- DUMMY 6 -->
+            <a href="#" class="neo-card article-card">
+
+                <div class="article-image">
+                    <img src="/2.png" alt="Dummy Artikel 6" loading="lazy">
+                </div>
+
+                <div class="article-content">
+
+                    <div class="article-header-box">
+                        <h4 class="article-title">
+                            Jadwal Kegiatan Rutin Bulan Ini
+                        </h4>
+                    </div>
+
+                    <div class="article-author-info">
+                        <span class="article-author-name">Admin</span>
+                        <span class="article-date">08 Sep 2026</span>
+                        <span class="article-view-count">👁 12</span>
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+
+        <!-- CTA "Lihat Semua" -->
+        <div class="dummy-articles-footer">
+            <a href="/article" class="neo-btn">
+                Lihat Semua Artikel
+            </a>
+        </div>
+
+    </div>
+
+</section>
+
+<style>
+    /* =========================================================
+   HERO PHOTOS ("Foto Kegiatan Terbaru")
+========================================================= */
+
+    .hero-photos {
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+
+    /* =========================================================
+   DUMMY ARTICLES
+========================================================= */
+
+    .dummy-articles {
+        padding-top: 60px;
+        padding-bottom: 80px;
+    }
+
+
+    /* =========================
+   HEADER
+========================= */
+
+    .dummy-articles-header {
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 3px solid var(--dark);
+    }
+
+    .dummy-articles-header h3 {
+        margin: 0 0 6px 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    .dummy-articles-subtitle {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+
+    /* =========================
+   GRID
+========================= */
+
+    .dummy-articles-grid {
+        margin-bottom: 40px;
+    }
+
+
+    /* =========================
+   FOOTER / CTA
+========================= */
+
+    .dummy-articles-footer {
+        text-align: center;
+        margin-top: 60px;
+    }
+
+
+    /* =========================
+   RESPONSIVE
+========================= */
+
+    @media (max-width: 992px) {
+
+        .dummy-articles-grid.grid-cols-3 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+    }
+
+    @media (max-width: 576px) {
+
+        .dummy-articles {
+            padding-top: 40px;
+            padding-bottom: 60px;
+        }
+
+        .dummy-articles-header h3 {
+            font-size: 1.4rem;
+        }
+
+        .dummy-articles-grid.grid-cols-3 {
+            grid-template-columns: 1fr !important;
+        }
+
+    }
+</style>

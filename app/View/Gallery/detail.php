@@ -216,6 +216,312 @@
 
     </div>
 </section>
+
+
+
+<?php
+$recommendedGalleries =
+    $model['recommendedGalleries'] ?? [];
+?>
+
+<?php if (!empty($recommendedGalleries)): ?>
+
+    <section class="hero gallery-recommendations">
+
+        <div class="container">
+
+            <div class="gallery-detail-wrapper">
+
+                <div class="related-header">
+                    <h3>
+                        <span class="highlight highlight-yellow">
+                            Foto Lainnya
+                        </span>
+                    </h3>
+                </div>
+
+
+                <!-- GALLERY GRID -->
+                <div class="gallery-recommendations-grid">
+
+                    <?php foreach ($recommendedGalleries as $recommended): ?>
+
+                        <a href="/gallery/<?= htmlspecialchars($recommended['slug']) ?>"
+                            class="neo-card gallery-recommendation-card">
+
+                            <!-- IMAGE -->
+                            <div class="gallery-recommendation-image">
+
+                                <?php if (!empty($recommended['image'])): ?>
+
+                                    <img src="/uploads/galleries/<?= htmlspecialchars($recommended['image']) ?>" alt="<?= htmlspecialchars(
+                                          $recommended['caption'] ?: 'Gallery'
+                                      ) ?>" loading="lazy">
+
+                                <?php else: ?>
+
+                                    <div class="gallery-no-image">
+                                        Tidak ada gambar
+                                    </div>
+
+                                <?php endif; ?>
+
+                            </div>
+
+
+                            <!-- CONTENT -->
+                            <div class="gallery-recommendation-content">
+
+                                <h4>
+                                    <?= htmlspecialchars(
+                                        $recommended['caption'] ?: 'Gallery'
+                                    ) ?>
+                                </h4>
+
+                                <?php if (!empty($recommended['created_at'])): ?>
+
+                                    <span class="gallery-recommendation-date">
+                                        <?= date(
+                                            'd M Y',
+                                            strtotime($recommended['created_at'])
+                                        ) ?>
+                                    </span>
+
+                                <?php endif; ?>
+
+                            </div>
+
+                        </a>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div style="margin-bottom: 2rem;"></div>
+
+    </section>
+
+<?php endif; ?>
+
+<style>
+    /* =========================================================
+   RECOMMENDED GALLERIES ("Foto Lainnya")
+========================================================= */
+
+    .gallery-recommendations {
+        padding-top: 0;
+        padding-bottom: 80px;
+    }
+
+    .gallery-recommendations-section {
+        width: 100%;
+    }
+
+
+    /* =========================
+   HEADER
+========================= */
+
+    .gallery-recommendations .related-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 3px solid var(--dark);
+    }
+
+    .gallery-recommendations .related-header h3 {
+        margin: 0 0 6px 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+
+    .gallery-recommendations .related-subtitle {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+
+    /* =========================
+   GRID
+========================= */
+
+    .gallery-recommendations-grid {
+        display: grid;
+
+        grid-template-columns: repeat(4, 1fr);
+
+        gap: 1.5rem;
+    }
+
+
+    /* =========================
+   CARD
+========================= */
+
+    .neo-card.gallery-recommendation-card {
+        display: flex;
+        flex-direction: column;
+
+        padding: 0;
+        height: auto;
+
+        box-sizing: border-box;
+
+        background-color: #ffffff;
+        text-decoration: none;
+        color: inherit;
+
+        overflow: hidden;
+
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
+    }
+
+    .neo-card.gallery-recommendation-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 6px 6px 0 var(--dark);
+    }
+
+
+    /* =========================
+   IMAGE
+========================= */
+
+    .gallery-recommendation-image {
+        width: 100%;
+
+        aspect-ratio: 4 / 3;
+
+        overflow: hidden;
+        flex-shrink: 0;
+
+        background-color: #f0f0f0;
+
+        margin: 0;
+        padding: 0;
+    }
+
+    .gallery-recommendation-image img {
+        display: block;
+
+        width: 100%;
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+        border: 0;
+
+        object-fit: cover;
+        object-position: center;
+
+        transition: transform 0.3s ease;
+    }
+
+    .neo-card.gallery-recommendation-card:hover .gallery-recommendation-image img {
+        transform: scale(1.05);
+    }
+
+    .gallery-no-image {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 100%;
+        height: 100%;
+
+        background-color: #f0f0f0;
+        color: #999;
+
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+
+    /* =========================
+   CONTENT
+========================= */
+
+    .gallery-recommendation-content {
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.25rem;
+
+        padding: 1.25rem 1.5rem 1.5rem;
+    }
+
+    .gallery-recommendation-content h4 {
+        margin: 0;
+
+        font-size: 1.05rem;
+        font-weight: 800;
+
+        color: var(--dark);
+
+        line-height: 1.3;
+
+        /* Batasi 2 baris supaya tinggi card konsisten */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .gallery-recommendation-date {
+        margin: 0;
+
+        font-size: 0.85rem;
+        font-weight: 600;
+
+        color: #666;
+    }
+
+
+    /* =========================
+   RESPONSIVE
+========================= */
+
+    @media (max-width: 992px) {
+
+        .gallery-recommendations-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+    }
+
+    @media (max-width: 768px) {
+
+        .gallery-recommendations {
+            padding-top: 40px;
+            padding-bottom: 60px;
+        }
+
+        .gallery-recommendations-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .gallery-recommendations .related-header h3 {
+            font-size: 1.3rem;
+        }
+
+        .gallery-recommendation-content {
+            padding: 1rem 1.25rem 1.25rem;
+        }
+
+        .gallery-recommendation-content h4 {
+            font-size: 1rem;
+        }
+
+    }
+</style>
+
 <!-- Lightbox -->
 <div class="gallery-lightbox" id="gallery-lightbox" aria-hidden="true">
     <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Tutup">&times;</button>
@@ -483,6 +789,10 @@
 
     .gallery-detail {
         padding-top: 140px;
+    }
+
+    .hero {
+        padding-bottom: 20px;
     }
 
     .gallery-detail-wrapper {
@@ -1093,7 +1403,6 @@
     );
 
 </script>
-
 
 <script>
 

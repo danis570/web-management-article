@@ -656,11 +656,390 @@
     </div>
 </section>
 
+<?php
+/* =====================================================
+   ARTICLE RECOMMENDATION
+====================================================== */
 
+$combinedArticles = [];
+
+$sources = [
+    $model['latestArticles'] ?? [],
+    $model['recommendedArticles'] ?? [],
+    $model['leastViewedArticles'] ?? [],
+];
+
+$shownIds = [
+    (int) ($model['article']['id'] ?? 0)
+];
+
+foreach ($sources as $articles) {
+
+    foreach ($articles as $article) {
+
+        $articleId = (int) $article['id'];
+
+        // Lewati artikel yang sedang dibuka
+        // dan artikel yang sudah masuk list
+        if (in_array($articleId, $shownIds, true)) {
+            continue;
+        }
+
+        $shownIds[] = $articleId;
+        $combinedArticles[] = $article;
+    }
+}
+
+// Maksimal 8 artikel
+$combinedArticles = array_slice(
+    $combinedArticles,
+    0,
+    8
+);
+?>
+
+
+<?php if (!empty($combinedArticles)): ?>
+
+    <section class="hero related-articles">
+
+        <div class="container">
+
+            <div class="article-detail-wrapper">
+
+                <div class="related-section">
+
+                    <!-- HEADER -->
+                    <div class="related-header">
+
+                        <h3>
+                            <span class="highlight highlight-yellow">
+                                Artikel Lainnya
+                            </span>
+                        </h3>
+
+                    </div>
+
+
+                    <!-- GRID -->
+                    <div class="grid grid-cols-4 gap-grid-md">
+
+                        <?php foreach ($combinedArticles as $article): ?>
+
+                            <a href="/article/<?= htmlspecialchars($article['slug']) ?>" class="neo-card article-card">
+
+                                <?php if (!empty($article['image'])): ?>
+
+                                    <div class="article-image">
+                                        <img src="/uploads/articles/<?= htmlspecialchars($article['image']) ?>"
+                                            alt="<?= htmlspecialchars($article['title']) ?>" loading="lazy">
+                                    </div>
+
+                                <?php else: ?>
+
+                                    <div class="article-image article-image-placeholder">
+                                        <span>No Image</span>
+                                    </div>
+
+                                <?php endif; ?>
+
+
+                                <div class="article-content">
+
+                                    <div class="article-header-box">
+                                        <h4 class="article-title">
+                                            <?= htmlspecialchars($article['title']) ?>
+                                        </h4>
+                                    </div>
+
+
+                                    <div class="article-author-info">
+
+                                        <span class="article-author-name">
+                                            <?= htmlspecialchars(
+                                                $article['authors'] ?? 'Unknown Author'
+                                            ) ?>
+                                        </span>
+
+                                        <?php if (!empty($article['created_at'])): ?>
+
+                                            <?php
+                                            $displayDate = $article['created_at'];
+
+                                            if (
+                                                !empty($article['updated_at'])
+                                                && $article['updated_at'] > $article['created_at']
+                                            ) {
+                                                $displayDate = $article['updated_at'];
+                                            }
+                                            ?>
+
+                                            <span class="article-date">
+                                                <?= date('d M Y', strtotime($displayDate)) ?>
+                                            </span>
+
+                                        <?php endif; ?>
+
+
+                                        <?php if (
+                                            isset($article['view_count'])
+                                            || isset($article['comment_count'])
+                                            || isset($article['like_count'])
+                                        ): ?>
+
+
+                                            <div class="article-stats">
+
+                                                <!-- View Count -->
+                                                <span class="stat-item" title="Dilihat"
+                                                    style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                        <path
+                                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                    </svg>
+
+                                                    <?= number_format(
+                                                        (int) ($article['view_count'] ?? 0)
+                                                    ) ?>
+                                                </span>
+
+
+                                                <!-- Like Count -->
+                                                <span class="stat-item" title="Disukai"
+                                                    style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                        <path
+                                                            d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                                    </svg>
+
+                                                    <?= number_format(
+                                                        (int) ($article['like_count'] ?? 0)
+                                                    ) ?>
+                                                </span>
+
+
+                                                <!-- Comment Count -->
+                                                <span class="stat-item" title="Komentar"
+                                                    style="display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2-2z" />
+                                                    </svg>
+
+                                                    <?= number_format(
+                                                        (int) ($article['comment_count'] ?? 0)
+                                                    ) ?>
+                                                </span>
+
+                                            </div>
+
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+
+                        <?php endforeach; ?>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+<?php endif; ?>
 <style>
+    /* =========================================================
+    1. ARTICLE CARD (untuk section "Artikel Lainnya")
+    ========================================================= */
+
+    .neo-card.article-card {
+        display: flex;
+        flex-direction: column;
+
+        padding: 0;
+        height: auto;
+        box-sizing: border-box;
+
+        background-color: #ffffff;
+        text-decoration: none;
+        color: inherit;
+
+        overflow: hidden;
+
+        transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease;
+    }
+
+    .neo-card.article-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 6px 6px 0 var(--dark);
+    }
+
+
     /* =========================
-       ARTICLE DETAIL
-    ========================= */
+   IMAGE
+========================= */
+
+    .article-card .article-image {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+
+        overflow: hidden;
+        flex-shrink: 0;
+
+        margin: 0;
+        padding: 0;
+    }
+
+    .article-card .article-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+        border: 0;
+
+        object-fit: cover;
+        object-position: center;
+    }
+
+    .article-card .article-image-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #f0f0f0;
+        color: #999;
+
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+
+    /* =========================
+   CONTENT
+========================= */
+
+    .article-card .article-content {
+        padding-top: 20px;
+    }
+
+    .article-card .article-header-box {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .article-card .article-title {
+        margin: 0;
+
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--dark);
+        line-height: 1.3;
+    }
+
+
+    /* =========================
+   AUTHOR INFO
+========================= */
+
+    .article-card .article-author-info {
+        margin-top: 0.5rem;
+
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-bottom: 1rem;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 0.25rem;
+    }
+
+    .article-card .article-author-name {
+        margin: 0;
+
+        font-size: 0.8rem;
+        color: var(--dark);
+    }
+
+    .article-card .article-date {
+        margin: 0;
+
+        font-size: 0.8rem;
+        color: var(--dark);
+    }
+
+
+    /* =========================================================
+   2. SECTION: ARTIKEL LAINNYA
+========================================================= */
+
+    .related-articles {
+        padding-top: 0px;
+        padding-bottom: 80px;
+    }
+
+    .related-section {
+        margin-bottom: 60px;
+    }
+
+    .related-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .related-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 3px solid var(--dark);
+    }
+
+    .related-header h3 {
+        margin: 0 0 6px 0;
+        font-size: 1.6rem;
+        font-weight: 800;
+    }
+
+    .related-subtitle {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .article-view-count {
+        font-size: 0.8rem;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .article-stats {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.3rem;
+    }
+
+
+    /* =========================================================
+   3. ARTICLE DETAIL
+========================================================= */
 
     .article-detail {
         padding-top: 140px;
@@ -684,6 +1063,11 @@
         height: 16px;
     }
 
+
+    /* =========================
+   TAGS
+========================= */
+
     .article-tags {
         display: flex;
         flex-wrap: wrap;
@@ -703,8 +1087,8 @@
 
 
     /* =========================
-       BREADCRUMB
-    ========================= */
+   BREADCRUMB
+========================= */
 
     .breadcrumb {
         display: flex;
@@ -733,21 +1117,30 @@
 
 
     /* =========================
-       ARTICLE CARD
-    ========================= */
+   ARTICLE DETAIL CARD
+========================= */
 
     .article-detail-card {
         padding: 0;
         overflow: hidden;
     }
 
+
+    /* =========================
+   META
+========================= */
+
     .article-meta {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
+
         gap: 1rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.85rem;
+
         margin-top: 1rem;
+        margin-bottom: 1.5rem;
+
+        font-size: 0.85rem;
     }
 
     .article-author {
@@ -780,9 +1173,15 @@
         font-weight: 700;
     }
 
-    /* =========================
-       IMAGE SLIDER
-    ========================= */
+    .article-date {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+   4. IMAGE SLIDER
+========================================================= */
 
     .article-detail-slider {
         position: relative;
@@ -824,8 +1223,8 @@
 
 
     /* =========================
-       SLIDER BUTTON
-    ========================= */
+   SLIDER BUTTON
+========================= */
 
     .slider-btn {
         position: absolute;
@@ -863,7 +1262,6 @@
     .slider-btn:active {
         transform: translate(var(--shadow-offset),
                 calc(-50% + var(--shadow-offset)));
-
         box-shadow: none;
     }
 
@@ -877,8 +1275,8 @@
 
 
     /* =========================
-       SLIDER DOTS
-    ========================= */
+   SLIDER DOTS
+========================= */
 
     .slider-dots {
         position: absolute;
@@ -904,7 +1302,6 @@
         background-color: var(--light);
 
         border: 2px solid var(--dark);
-
         box-shadow: 2px 2px 0 var(--dark);
 
         cursor: pointer;
@@ -915,68 +1312,35 @@
     }
 
 
-    /* =========================
-       ARTICLE CONTENT
-    ========================= */
+    /* =========================================================
+   5. ARTICLE CONTENT / BODY
+========================================================= */
 
     .article-detail-content {
         padding: 40px;
     }
 
-    .article-detail-content h1 {
-        margin-bottom: 20px;
+    .article-detail-content h4 {
+        margin: 0 0 20px 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+        line-height: 1.3;
     }
-
-
-    /* =========================
-       META
-    ========================= */
-
-    .article-meta {
-        display: flex;
-
-        align-items: center;
-
-        gap: 15px;
-
-        flex-wrap: wrap;
-
-        margin-bottom: 30px;
-    }
-
-    .article-date {
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-
-
-    /* =========================
-       DIVIDER
-    ========================= */
 
     .article-divider {
         margin-bottom: 30px;
     }
-
-
-    /* =========================
-   ARTICLE BODY
-========================= */
 
     .article-body {
         font-size: 1.1rem;
         line-height: 1.8;
     }
 
-    /* Tambahkan block ini untuk memaksa paragraf full ke kanan */
     .article-body p {
         margin-bottom: 20px;
+
         width: 100% !important;
-        /* !important memaksa menimpa inline style dari Text Editor */
         max-width: 100% !important;
-        /* Menghilangkan batasan lebar maksimal */
-        text-align: justify;
-        /* Membuat teks rata kanan-kiri sehingga terlihat penuh */
     }
 
     .article-body img {
@@ -984,12 +1348,19 @@
         height: auto;
     }
 
+
+    /* =========================================================
+   6. ARTICLE ACTIONS (Share & Like)
+========================================================= */
+
     .article-actions {
         display: flex;
         align-items: center;
         justify-content: space-between;
+
         margin: 24px 0;
         padding: 14px 18px;
+
         border: 2px solid var(--dark);
         background: #fff;
     }
@@ -1041,93 +1412,9 @@
     }
 
 
-    /* =========================
-       TABLET
-    ========================= */
-
-    @media (max-width: 768px) {
-
-        .article-detail {
-            padding-top: 110px;
-        }
-
-        .article-detail-slider {
-            height: 300px;
-        }
-
-        .article-detail-content {
-            padding: 25px;
-        }
-
-        .slider-btn {
-            width: 40px;
-            height: 40px;
-
-            font-size: 1.2rem;
-        }
-
-        .slider-prev {
-            left: 10px;
-        }
-
-        .slider-next {
-            right: 10px;
-        }
-
-    }
-
-
-    /* =========================
-       MOBILE
-    ========================= */
-
-    @media (max-width: 576px) {
-
-        .article-detail-slider {
-            height: 220px;
-        }
-
-        .article-detail-content {
-            padding: 20px;
-        }
-
-        .article-detail-content h1 {
-            font-size: 2rem;
-        }
-
-        .article-body {
-            font-size: 1rem;
-        }
-
-        .slider-btn {
-            width: 36px;
-            height: 36px;
-
-            font-size: 1rem;
-        }
-
-        .slider-prev {
-            left: 8px;
-        }
-
-        .slider-next {
-            right: 8px;
-        }
-
-        .slider-dots {
-            bottom: 12px;
-        }
-
-        .slider-dot {
-            width: 11px;
-            height: 11px;
-        }
-
-    }
-
-    /* =========================
-   COMMENTS
-========================= */
+    /* =========================================================
+   7. COMMENTS
+========================================================= */
 
     .comments-section {
         margin-top: 40px;
@@ -1169,7 +1456,6 @@
         color: var(--dark);
 
         border: 2px solid var(--dark);
-
         box-shadow: 3px 3px 0 var(--dark);
     }
 
@@ -1189,7 +1475,6 @@
         background-color: var(--light);
 
         border: var(--border-width-bold) solid var(--dark);
-
         box-shadow:
             var(--shadow-offset) var(--shadow-offset) 0 var(--dark);
     }
@@ -1247,7 +1532,6 @@
         background-color: #fff;
 
         border: var(--border-width-bold) solid var(--dark);
-
         box-shadow:
             var(--shadow-offset) var(--shadow-offset) 0 var(--dark);
 
@@ -1258,7 +1542,6 @@
 
     .comment-item:hover {
         transform: translate(-2px, -2px);
-
         box-shadow:
             calc(var(--shadow-offset) + 2px) calc(var(--shadow-offset) + 2px) 0 var(--dark);
     }
@@ -1320,7 +1603,6 @@
         justify-content: center;
 
         background-color: var(--primary);
-
         color: #fff;
 
         font-size: 1rem;
@@ -1334,7 +1616,6 @@
 
     .comment-content {
         margin-left: 54px;
-
         margin-bottom: 18px;
 
         color: var(--dark);
@@ -1353,12 +1634,11 @@
     .comment-actions {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
 
         gap: 8px;
 
         margin-left: 54px;
-
-        flex-wrap: wrap;
     }
 
     .comment-actions form {
@@ -1378,7 +1658,6 @@
         background-color: #fff;
 
         border: 2px solid var(--dark);
-
         color: var(--dark);
 
         font-family: inherit;
@@ -1397,20 +1676,13 @@
         background-color: #f5f5f5;
 
         transform: translate(-1px, -1px);
-
         box-shadow: 2px 2px 0 var(--dark);
     }
 
     .comment-actions button:active {
         transform: translate(2px, 2px);
-
         box-shadow: none;
     }
-
-
-    /* =========================
-   LIKE BUTTON
-========================= */
 
     .comment-actions form:first-child button {
         gap: 5px;
@@ -1419,11 +1691,6 @@
     .comment-actions form:first-child button:hover {
         background-color: #fff3f3;
     }
-
-
-    /* =========================
-   DELETE BUTTON
-========================= */
 
     .comment-actions form:last-child button {
         font-size: 0.75rem;
@@ -1470,7 +1737,6 @@
         background-color: #fff8d6;
 
         border: var(--border-width-bold) solid var(--dark);
-
         box-shadow:
             var(--shadow-offset) var(--shadow-offset) 0 var(--dark);
     }
@@ -1495,81 +1761,9 @@
     }
 
 
-    /* =========================
-   TABLET
-========================= */
-
-    @media (max-width: 768px) {
-
-        .comments-section {
-            margin-top: 30px;
-        }
-
-        .comment-item {
-            padding: 16px;
-        }
-
-        .comment-content,
-        .comment-actions {
-            margin-left: 0;
-        }
-
-    }
-
-
-    /* =========================
-   MOBILE
-========================= */
-
-    @media (max-width: 576px) {
-
-        .comments-header h4 {
-            font-size: 1.3rem;
-        }
-
-        .comments-header .highlight {
-            min-width: 28px;
-            height: 28px;
-
-            font-size: 0.8rem;
-        }
-
-        .comment-form {
-            padding: 15px;
-        }
-
-        .comment-item {
-            padding: 15px;
-        }
-
-        .comment-avatar {
-            width: 38px;
-            height: 38px;
-        }
-
-        .comment-user {
-            gap: 10px;
-        }
-
-        .comment-content {
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .comment-actions button,
-        .comment-actions>span {
-            min-height: 32px;
-
-            padding: 5px 10px;
-
-            font-size: 0.75rem;
-        }
-
-    }
-
-    /* =========================
-   REPLY FORM
-========================= */
+    /* =========================================================
+   8. REPLY FORM
+========================================================= */
 
     .reply-form {
         margin-top: 16px;
@@ -1629,19 +1823,16 @@
         font-weight: 700;
 
         cursor: pointer;
+
+        transition:
+            transform 0.15s ease,
+            box-shadow 0.15s ease,
+            background 0.15s ease;
     }
 
-    .cancel-reply-btn:hover {
-        transform: translate(2px, 2px);
-        box-shadow: 2px 2px 0 #111;
-    }
-
-    /* Kirim */
     .reply-submit-btn {
         background: #16a34a;
         color: #fff;
-
-        box-shadow: 4px 4px 0 #111;
     }
 
     .reply-submit-btn:hover {
@@ -1649,7 +1840,6 @@
         box-shadow: 2px 2px 0 #111;
     }
 
-    /* Batal */
     .cancel-reply-btn {
         background: #fff;
         color: #111;
@@ -1657,6 +1847,9 @@
 
     .cancel-reply-btn:hover {
         background: #eee;
+
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #111;
     }
 
     .toggle-replies-btn {
@@ -1678,6 +1871,218 @@
 
     .toggle-replies-btn:hover {
         text-decoration: underline;
+    }
+
+
+    /* =========================================================
+   9. RESPONSIVE
+========================================================= */
+
+
+    /* =========================
+   TABLET — max 992px
+========================= */
+
+    @media (max-width: 992px) {
+
+        .related-articles .grid.grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+         .article-card .article-title {
+            font-size: 1.3rem;
+        }
+
+    }
+
+
+    /* =========================
+   TABLET — max 768px
+========================= */
+
+    @media (max-width: 768px) {
+
+        /* ARTICLE CARD */
+        .article-card .article-image {
+            aspect-ratio: 16 / 9;
+        }
+
+        /* RELATED ARTICLES */
+        .related-articles .grid.grid-cols-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+
+        /* ARTICLE DETAIL */
+        .article-detail {
+            padding-top: 110px;
+        }
+
+        .article-detail-slider {
+            height: 300px;
+        }
+
+        .article-detail-content {
+            padding: 25px;
+        }
+
+        .slider-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .slider-prev {
+            left: 10px;
+        }
+
+        .slider-next {
+            right: 10px;
+        }
+
+        /* COMMENTS */
+        .comments-section {
+            margin-top: 30px;
+        }
+
+        .comment-item {
+            padding: 16px;
+        }
+
+        .comment-content,
+        .comment-actions {
+            margin-left: 0;
+        }
+
+        .article-card .article-title {
+            font-size: 1.2rem;
+        }
+
+    }
+
+
+    /* =========================
+   MOBILE — max 576px
+========================= */
+
+    @media (max-width: 576px) {
+
+        /* RELATED ARTICLES */
+        .related-articles {
+            padding-top: 40px;
+            padding-bottom: 60px;
+        }
+
+        .related-section {
+            margin-bottom: 40px;
+        }
+
+        .related-header h3 {
+            font-size: 1.3rem;
+        }
+
+        .related-articles .grid.grid-cols-4 {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* ARTICLE DETAIL */
+        .article-detail-slider {
+            height: 220px;
+        }
+
+        .article-detail-content {
+            padding: 20px;
+        }
+
+        .article-detail-content h4 {
+            font-size: 1.5rem;
+        }
+
+        .article-body {
+            font-size: 1rem;
+        }
+
+        .slider-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+
+        .slider-prev {
+            left: 8px;
+        }
+
+        .slider-next {
+            right: 8px;
+        }
+
+        .slider-dots {
+            bottom: 12px;
+        }
+
+        .slider-dot {
+            width: 11px;
+            height: 11px;
+        }
+
+        /* COMMENTS */
+        .comments-header h4 {
+            font-size: 1.3rem;
+        }
+
+        .comments-header .highlight {
+            min-width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
+        }
+
+        .comment-form {
+            padding: 15px;
+        }
+
+        .comment-item {
+            padding: 15px;
+        }
+
+        .comment-avatar {
+            width: 38px;
+            height: 38px;
+        }
+
+        .comment-user {
+            gap: 10px;
+        }
+
+        .comment-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .comment-actions button,
+        .comment-actions>span {
+            min-height: 32px;
+
+            padding: 5px 10px;
+
+            font-size: 0.75rem;
+        }
+
+        .article-card .article-title {
+            font-size: 1.2rem;
+        }
+
+    }
+
+
+    /* =========================
+   SMALL MOBILE — max 480px
+========================= */
+
+    @media (max-width: 480px) {
+
+        .article-card .article-title {
+            font-size: 1.1rem;
+        }
+
     }
 </style>
 <script>

@@ -9,8 +9,9 @@
                 <div class="article-header" style="display: flex; justify-content: space-between; align-items: center;">
 
                     <h3>
+                        <span id="article-title-prefix">Artikel</span>
+
                         <span class="highlight highlight-yellow" id="article-title">
-                           Artikel
                         </span>
                     </h3>
 
@@ -28,7 +29,7 @@
                             const tagName =
                                 decodeURIComponent(hash.substring(1));
 
-                            prefix.textContent = 'Article';
+                            prefix.textContent = 'Artikel';
 
                             title.textContent = `#${tagName}`;
                         }
@@ -422,13 +423,6 @@
 ========================================================= */
 
     @media (max-width: 768px) {
-
-        #article-list {
-
-            grid-template-columns: 1fr !important;
-
-        }
-
 
         .article-card .article-image {
 

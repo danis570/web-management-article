@@ -17,12 +17,12 @@
 
             <!-- Kolom Tengah: Navigasi -->
             <div class="footer-column">
-                <h3>NAVIGASI</h3>
+                <h3>PROFILE</h3>
                 <ul class="footer-links">
-                    <li><a href="#">Kelas Online</a></li>
-                    <li><a href="#">Roadmap</a></li>
-                    <li><a href="#">Quiz</a></li>
-                    <li><a href="#">Diskusi</a></li>
+                    <li><a href="#">Pengurus Aktif</a></li>
+                    <li><a href="#">Alumni</a></li>
+                    <li><a href="#">Sejarah</a></li>
+                    <li><a href="#">Kegiatan</a></li>
                 </ul>
             </div>
 
@@ -52,19 +52,38 @@
 
 <!-- Mobile menu script -->
 <script>
-    document.getElementById('menuBtn').addEventListener('click', function () {
-        const menu = document.querySelector('.menu');
-        
-        // 1. Toggle class active untuk memunculkan/menyembunyikan menu
-        menu.classList.toggle('active');
-        
-        // 2. Cek apakah menu saat ini sedang aktif (terbuka) atau tidak
-        if (menu.classList.contains('active')) {
-            this.textContent = '✕'; // Ubah tombol menjadi X jika terbuka
-        } else {
-            this.textContent = '☰'; // Kembalikan ke ikon Hamburger jika tertutup
-        }
+document.addEventListener('DOMContentLoaded', function () {
+
+    const menuBtn    = document.getElementById('menuBtn');
+    const menuClose  = document.getElementById('menuClose');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (!menuBtn || !mobileMenu) return;
+
+    function openMenu() {
+        mobileMenu.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+        mobileMenu.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    menuBtn.addEventListener('click', openMenu);
+    menuClose.addEventListener('click', closeMenu);
+
+    // Tutup kalau klik link
+    mobileMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', closeMenu);
     });
+
+    // Tutup dengan ESC
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeMenu();
+    });
+
+});
 </script>
 
 </body>

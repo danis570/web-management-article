@@ -198,4 +198,45 @@ class ArticleService
             throw new Exception('Content cannot be blank');
         }
     }
+
+
+    public function getLatestArticles(
+        int $currentArticleId,
+        int $limit = 4
+    ): array {
+
+        return $this->articleRepository
+            ->getLatestArticles(
+                $currentArticleId,
+                $limit
+            );
+    }
+
+
+    public function getRecommendedArticles(
+        int $currentArticleId,
+        int $limit = 4
+    ): array {
+
+        return $this->articleRepository
+            ->getRecommendedArticles(
+                $currentArticleId,
+                $limit
+            );
+    }
+
+
+    public function getLeastViewedArticles(
+        int $currentArticleId,
+        int $limit = 4
+    ): array {
+
+        return $this->articleRepository
+            ->getLeastViewedArticles(
+                $currentArticleId,
+                $limit
+            );
+    }
+
+
 }

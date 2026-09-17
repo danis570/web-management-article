@@ -242,10 +242,13 @@ class GalleryController extends BaseController
 
             $profile = $this->profileService
                 ->getByUserId($gallery->userId);
+            $recommendedGalleries = $this->galleryService->getLatestGalleries($gallery->id, 4);
+
 
             $data['gallery'] = $gallery;
             $data['images'] = $images;
             $data['profile'] = $profile;
+            $data['recommendedGalleries'] = $recommendedGalleries;
             $gallery = $this->galleryService->getBySlug($slug);
 
 

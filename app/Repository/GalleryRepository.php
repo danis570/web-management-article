@@ -177,6 +177,52 @@ class GalleryRepository
         $stmt->execute([$id]);
     }
 
+    public function getLatestGalleries(
+        int $currentGalleryId,
+        int $limit = 4
+    ): array {
+        $stmt = $this->pdo->prepare("
+        SELECT
+            g.id,
+            g.caption,
+            g.slug,
+            g.created_at,
+
+            (
+                SELECT gi.image
+                FROM gallery_images gi
+                WHERE gi.gallery_id = g.id
+                ORDER BY gi.id ASC
+                LIMIT 1
+            ) AS image
+
+        FROM galleries g
+
+        WHERE g.id != :current_id
+          AND g.deleted_at IS NULL
+
+        ORDER BY g.created_at DESC
+
+        LIMIT :limit
+    ");
+
+        $stmt->bindValue(
+            ':current_id',
+            $currentGalleryId,
+            PDO::PARAM_INT
+        );
+
+        $stmt->bindValue(
+            ':limit',
+            $limit,
+            PDO::PARAM_INT
+        );
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     private function mapToDomain(array $data): Gallery
     {
         $gallery = new Gallery();
